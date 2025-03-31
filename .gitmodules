@@ -1,0 +1,6 @@
+[submodule "DEIS/repo_deis"]
+	path = DEIS/repo_deis
+	url = https://github.com/JoseLilloV/deisBD.git
+[submodule "DEIS/repo_modelling"]
+	path = DEIS/repo_modelling
+	url = https://github.com/JoseLilloV/GRD---Modelling.git
