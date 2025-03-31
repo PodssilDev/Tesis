@@ -1,0 +1,189 @@
+hospital_id,hospital_fns_id,region_id,hospital_name,hospital_alternative_name,latitud,longitud,complejidad
+101100,103,15,Hospital Dr. Juan NoÃ© Crevanni (Arica),Hospital Doctor Juan NoÃ©,-18.4827,-70.3126,Alta
+102100,203,1,Hospital Dr. Ernesto Torres Galdames (Iquique),Hospital Iquique,-20.2139,-70.1383,Alta
+103100,303,2,Hospital Dr. Leonardo GuzmÃ¡n (Antofagasta),Hospital de Antofagasta,-23.6597,-70.3959,Alta
+103101,304,2,Hospital Dr. Carlos Cisternas (Calama),Hospital de Calama,-22445,-68.9181,Alta
+103102,305,2,Hospital Dr. Marcos Macuada (Tocopilla),Hospital de Tocopilla,-22.0882,-70.1929,Baja
+103103,306,2,Hospital 21 de Mayo (Taltal),Hospital de Taltal,-25.4036,-70.4869,Baja
+103104,307,2,Hospital de Mejillones,Hospital de Mejillones,-23.0931,-70.4575,Baja
+104100,403,3,Hospital San JosÃ© del Carmen (CopiapÃ³),Hospital Regional de CopiapÃ³,-27.3668,-70.3417,Alta
+104101,404,3,Hospital Dr. JerÃ³nimo MÃ©ndez Arancibia (ChaÃ±aral),Hospital de ChaÃ±aral,-26.3442,-70.6071,Baja
+104103,406,3,Hospital Provincial del Huasco MonseÃ±or Fernando AriztÃ­a Ruiz (Vallenar),Hospital de Vallenar,-28.5765,-70.3578,Mediana
+104104,407,3,Hospital Dr. Manuel Magalhaes Medling (Huasco),Hospital de Huasco,-28.4568,-70.2929,Baja
+105100,503,4,Hospital San Juan de Dios (La Serena),Hospital La Serena,-29.9065,-70.2432,Alta
+105101,504,4,Hospital San Pablo (Coquimbo),Hospital Coquimbo,-30.0168,-71.2544,Alta
+105102,505,4,Hospital Dr. Antonio Tirado Lanas (Ovalle),Hospital Ovalle,-30.5991,-71.2124,Alta
+105103,506,4,Hospital Dr. Humberto Elorza CortÃ©s (Illapel),Hospital Illapel,-31.6277,-71.3682,Mediana
+105104,507,4,Hospital de Salamanca,Hospital Salamanca,-31.6344,-71.3425,Baja
+105105,508,4,Hospital San Juan de Dios (CombarbalÃ¡),Hospital CombarbalÃ¡,-31.2125,-71.2355,Baja
+105106,509,4,Hospital Dr. JosÃ© ArraÃ±o (Andacollo),Hospital de Andacollo,-29.9047,-71.5976,Baja
+105107,5010,4,Hospital San Juan de Dios (VicuÃ±a),Hospital VicuÃ±a,-30.0309,-70.7087,Baja
+105108,5011,4,Hospital San Pedro (Los Vilos),Hospital Los Vilos,-31.9075,-71.5144,Baja
+106100,603,5,Hospital Carlos Van Buren (ValparaÃ­so),Hospital Carlos Van Buren,-33.0458,-71.6229,Alta
+106103,604,5,Hospital Claudio VicuÃ±a ( San Antonio),Hospital Claudio VicuÃ±a,-33.5996,-71.5598,Alta
+106104,605,5,Hospital Del Salvador (ValparaÃ­so),Hospital Del Salvador,-33.0472,-71.3567,Mediana
+106105,606,5,Hospital San JosÃ© (Casablanca),Hospital San JosÃ© Casablanca,-33.3205,-71.4102,Baja
+106102,607,5,Hospital Dr. Eduardo Pereira RamÃ­rez (ValparaÃ­so),Hospital Doctor Eduardo Pereira,-33.0384,-71.6264,Alta
+107100,703,5,Hospital Dr. Gustavo Fricke (ViÃ±a del Mar),Hospital Doctor Gustavo Fricke,-33.0214,-71.5537,Alta
+107101,704,5,Hospital San MartÃ­n (Quillota),Hospital de Quillota,-32.8833,-71.2482,Baja
+107102,705,5,Hospital de QuilpuÃ©,Hospital de QuilpuÃ©,-33.0458,-71.4457,Alta
+107103,706,5,Hospital Dr. Mario SÃ¡nchez Vergara (La Calera),Hospital de La Calera,-32.7875,-71.2035,Baja
+107110,707,5,Hospital Centro GeriÃ¡trico Paz de la Tarde (Limache),Hospital GeriÃ¡trico Paz de la Tarde,-33.0098,-71.2544,Baja
+107104,708,5,Hospital Santo TomÃ¡s (Limache),Hospital de Limache,-33.0103,-71.2549,Baja
+107105,709,5,Hospital San AgustÃ­n (La Ligua),Hospital de La Ligua,-32.4478,-71.2316,Baja
+107106,7010,5,Hospital Dr. VÃ­ctor Hugo Moll (Cabildo),Hospital Cabildo,-32.4285,-71.0639,Baja
+107107,7011,5,Hospital de Petorca,Hospital Petorca,-32.2594,-70.9392,Baja
+107108,7012,5,Hospital Adriana CousiÃ±o (Quintero),Hospital de Quintero,-32.7844,-71.5269,Baja
+107109,7013,5,Hospital Juana Ross de Edwards (PeÃ±ablanca - Villa Alemana),Hospital PeÃ±ablanca,-33.0424,-71.3724,Baja
+108100,803,5,Hospital de San Camilo (San Felipe),Hospital San Camilo de San Felipe,-32.7521,-70.7254,Alta
+108101,804,5,Hospital San Juan de Dios (Los Andes),Hospital San Juan de Dios de Los Andes,-32.8325,-70.5984,Alta
+108102,805,5,Hospital San Francisco (Llaillay),Hospital San Francisco de Llay Llay,-32.8377,-70.9502,Baja
+108104,806,5,Hospital San Antonio (Putaendo),Hospital San Antonio de  Putaendo,-32.6214,-70.7253,Baja
+108105,807,5,Hospital PsiquiÃ¡trico Dr. Philippe Pinel (Putaendo),Hospital PsiquiÃ¡trico Doctor  Philippe Pinel de Putaendo,-32.6212,-70.7263,Mediana
+115100,903,6,Hospital Regional de Rancagua,Hospital Rancagua,-34.1713,-70.7449,Alta
+115101,904,6,Hospital Santa Filomena (Graneros),Hospital Graneros,-34.0667,-70.7264,Baja
+115102,905,6,Hospital de CoÃ­nco,Hospital CoÃ­nco,-34.2667,-70.9933,Baja
+115103,906,6,Hospital Del Salvador (Peumo),Hospital Peumo,-34.3903,-71.2542,Baja
+115104,907,6,Hospital Dr. Ricardo Valenzuela SÃ¡ez (Rengo),Hospital de Rengo,-34.4065,-70.8587,Mediana
+115105,908,6,Hospital San Vicente de Tagua-Tagua,Hospital San Vicente,-34.4487,-70.9682,Baja
+115106,909,6,Hospital de Pichidegua,Hospital Pichidegua,-34.2998,-71.2786,Baja
+115107,9010,6,Hospital San Juan de Dios (San Fernando),Hospital San Fernando,-34.5817,-70.9899,Alta
+115108,9011,6,Hospital Mercedes (Chimbarongo),Hospital Chimbarongo,-34.7239,-71.0394,Baja
+115109,9012,6,Hospital de Nancagua,Hospital Nancagua,-34.7012,-71.1288,Baja
+115110,9013,6,Hospital de Santa Cruz,Hospital Santa Cruz,-34.6364,-71.3657,Mediana
+115111,9014,6,Hospital de MarchigÃ¼e,Hospital Marchigue,-34.4231,-71.5873,Baja
+115112,9015,6,Hospital de Pichilemu,Hospital Pichilemu,-34.3869,-72.0095,Baja
+115113,9016,6,Hospital de Lolol,Hospital de Lolol,-34.7589,-71.6721,Baja
+115114,9017,6,Hospital de Litueche,Hospital de Litueche,-34.1344,-71.6822,Baja
+116100,1003,7,Hospital San Juan de Dios (CuricÃ³),Hospital CuricÃ³,-34.9824,-71.2433,Alta
+116101,1004,7,Hospital de Teno,Hospital de Teno,-34.8749,-71.1676,Baja
+116102,1005,7,Hospital de Molina,Hospital Molina,-35.1155,-71.2826,Baja
+116103,1006,7,Hospital de HualaÃ±Ã©,Hospital Hualane,-34.9768,-71.7986,Baja
+116104,1007,7,Hospital de LicantÃ©n,Hospital LicantÃ©n,-34.9983,-71.8771,Baja
+116105,1008,7,Hospital Dr. CÃ©sar Garavagno Burotto (Talca),Hospital Talca,-35.4232,-71.6485,Alta
+116106,1009,7,Hospital de Curepto,Hospital Curepto,-35.0834,-72.0038,Baja
+116107,10010,7,Hospital de ConstituciÃ³n,Hospital ConstituciÃ³n,-35.3329,-72.4162,Mediana
+116108,10011,7,Hospital Presidente Carlos IbÃ¡Ã±ez del Campo (Linares),Hospital Linares,-35.8487,-71.5901,Alta
+116109,10012,7,Hospital Dr. Abel Fuentealba Lagos de San Javier,Hospital San Javier,-35.5911,-71.7362,Mediana
+116110,10013,7,Hospital San JosÃ© (Parral),Hospital Parral,-36.1438,-71.8369,Mediana
+116111,10014,7,Hospital San Juan de Dios (Cauquenes),Hospital Cauquenes,-35.9637,-72.3228,Mediana
+116112,10015,7,Hospital Dr. BenjamÃ­n Pedreros (Chanco),Hospital Chanco,-35.7335,-72.5435,Baja
+117101,1103,16,Hospital ClÃ­nico Herminda MartÃ­n (ChillÃ¡n),Hospital de ChillÃ¡n,-36.6063,-72.1024,Alta
+117102,1104,16,Hospital de San Carlos,Hospital de San Carlos,-36.4267,-71.9592,Alta
+117103,1105,16,Hospital Comunitario de Salud Familiar de Bulnes,Hospital de Bulnes,-36.7411,-72.2996,Baja
+117104,1106,16,Hospital Comunitario de Salud Familiar Pedro Morales Campos (Yungay),Hospital de Yungay,-37.1013,-71.9325,Baja
+117106,1107,16,Hospital Comunitario de Salud Familiar de Quirihue,Hospital de Quirihue,-36.2821,-72.5323,Baja
+117108,1108,16,Hospital Comunitario de Salud Familiar Dr. Eduardo Contreras Trabucco de Coelemu,Hospital de Coelemu,-36.4942,-72.7081,Baja
+117107,1109,16,Hospital Comunitario de Salud Familiar de El Carmen,Hospital El Carmen,-36.5639,-72.0405,Baja
+118100,1203,8,Hospital ClÃ­nico Regional Dr. Guillermo Grant Benavente (ConcepciÃ³n),Hospital Guillermo  Grant Benavente,-36.8201,-73.0503,Alta
+118103,1204,8,Hospital TraumatolÃ³gico (ConcepciÃ³n),Hospital TraumatolÃ³gico,-36.8276,-73.0565,Mediana
+118105,1205,8,Hospital San JosÃ© (Coronel),Hospital de Coronel,-37.0302,-73.1412,Alta
+118106,1206,8,Hospital de Lota,Hospital Lota,-37.0887,-73.1581,Alta
+118107,1207,8,Hospital Clorinda Avello (Santa Juana),Hospital Santa Juana,-37.1696,-72.9339,Baja
+118108,1208,8,Hospital San AgustÃ­n de Florida,Hospital Florida,-36.8227,-72.6696,Baja
+119100,1303,8,Hospital Las Higueras (Talcahuano),Hospital Higueras,-36.7185,-73.1217,Alta
+119101,1304,8,Hospital de TomÃ©,Hospital Tome,-36.6206,-72.9515,Alta
+119102,1305,8,Hospital Penco - LirquÃ©n,Hospital Penco LirquÃ©n,-36.7399,-72.9955,Mediana
+120107,1404,8,Hospital Comunitario Dr. Roberto MuÃ±oz Urrutia de HuÃ©pil,Hospital Huepil,-37.6869,-72.0197,Baja
+120105,1405,8,Hospital Comunitario de Laja,Hospital de Laja,-37.2837,-72.7105,Baja
+120101,1406,8,Complejo Asistencial Dr. VÃ­ctor RÃ­os Ruiz (Los Ãngeles),Hospital de Los Ãngeles,-37.4621,-72.3604,Alta
+120102,1407,8,Hospital Comunitario de MulchÃ©n,Hospital de MulchÃ©n,-37.7222,-72.2329,Baja
+120103,1408,8,Hospital Comunitario de Nacimiento,Hospital de Nacimiento,-37.5079,-72.6766,Baja
+120104,1409,8,Hospital Comunitario de Yumbel,Hospital de Yumbel,-37.0846,-72.5645,Baja
+120106,14010,8,Hospital Comunitario de Santa BÃ¡rbara,Hospital Santa BÃ¡rbara,-37.6637,-72.0153,Baja
+128113,1503,8,Hospital San Vicente (Arauco),Hospital Arauco,-37.2462,-73.3219,Baja
+128111,1504,8,Hospital Intercultural Kallvu Llanka (CaÃ±ete),Hospital de CaÃ±ete,-37.8047,-73.3832,Baja
+128112,1505,8,Hospital de Contulmo,Hospital Contulmo,-38.0172,-73.2277,Baja
+128109,1506,8,Hospital Provincial Dr. Rafael AvarÃ­a (Curanilahue),Hospital Curanilahue,-37.4764,-73.3437,Mediana
+128110,1507,8,Hospital de Lebu,Hospital Lebu,-37.6088,-73.6595,Baja
+129100,1603,9,Hospital Dr. Mauricio Heyermann (Angol),Hospital Angol,-37.7966,-72.7099,Alta
+129106,1604,9,Hospital San JosÃ© de Victoria,Hospital Victoria,-38.2363,-72.3315,Alta
+129104,1605,9,Hospital Dr. Dino Stagno M.(TraiguÃ©n),Hospital TraiguÃ©n,-38.2502,-72.6886,Mediana
+129103,1606,9,Hospital de Collipulli,Hospital de Collipulli,-37.9536,-72.4364,Baja
+129101,1607,9,Hospital de PurÃ©n,Hospital PurÃ©n,-38.0503,-72.6734,Baja
+129107,1608,9,Hospital Dr. Oscar HernÃ¡ndez E.(CuracautÃ­n),Hospital CuracautÃ­n,-38.4353,-71.8888,Baja
+129108,1609,9,Hospital de Lonquimay,Hospital de Lonquimay,-38.4476,-71.2306,Baja
+121113,1704,9,Hospital Dr. Eduardo GonzÃ¡lez Galeno (Cunco),Hospital de Cunco,-38.9325,-72.0292,Baja
+121114,1705,9,Hospital Intercultural de Nueva Imperial,Hospital Nueva Imperial,-38.7449,-72.9503,Mediana
+121121,1706,9,Hospital de Villarrica,Hospital Villarica,-39.2868,-72.2278,Mediana
+121115,1707,9,Hospital de Carahue,Hospital Carahue,-38.7082,-73.1669,Baja
+121119,1708,9,Hospital de Gorbea,Hospital Gorbea,-39.0973,-72.6763,Baja
+121117,1709,9,Hospital de PitrufquÃ©n,Hospital PitrufquÃ©n,-39.2291,-72.6402,Mediana
+121116,17010,9,Hospital Dr. Arturo Hillerns LarraÃ±aga (Saavedra),Hospital Puerto Saavedra,-38.7779,-73.4003,Baja
+121118,17011,9,Hospital de ToltÃ©n,Hospital ToltÃ©n,-39.2144,-73.2075,Baja
+121111,17012,9,Hospital de Galvarino,Hospital Galvarino,-38.4178,-72.7738,Baja
+121110,17013,9,Hospital Dr. Abraham Godoy (Lautaro),Hospital Lautaro,-38.5277,-72.4466,Mediana
+121120,17014,9,Hospital de Loncoche,Hospital Loncoche,-39.3702,-72.6311,Baja
+121112,17015,9,Hospital de VilcÃºn,Hospital VilcÃºn,-38.6547,-72.2248,Baja
+121109,17016,9,Hospital Dr. HernÃ¡n HenrÃ­quez Aravena (Temuco),Hospital Temuco,-38.7335,-72.5963,Alta
+122100,1803,14,Hospital ClÃ­nico Regional (Valdivia),Hospital de Valdivia,-39.8099,-73.2459,Alta
+122101,1804,14,Hospital de Corral,Hospital de Corral,-39.8826,-73.4306,Baja
+122102,1805,14,Hospital de Los Lagos,Hospital de Los Lagos,-39.8561,-72.8254,Baja
+122103,1806,14,Hospital de Lanco,Hospital de Lanco,-39.4529,-72.7751,Baja
+122104,1807,14,Hospital Juan Morey (La UniÃ³n),Hospital de La UniÃ³n,-40.2931,-73.0812,Baja
+122105,1808,14,Hospital de RÃ­o Bueno,Hospital de RÃ­o Bueno,-40.3326,-72.9535,Baja
+122106,1809,14,Hospital de Paillaco,Hospital de Paillaco,-40.0692,-72.8776,Baja
+122200,18011,14,Hospital de Mariquina,Hospital Santa Elisa De San Jose De La Mariquina,-39.5332,-72.9767,Baja
+123100,1903,10,Hospital Base San JosÃ© de Osorno,Hospital de Osorno,-40.5744,-73.1252,Alta
+123103,1904,10,Hospital de Puerto Octay,Hospital Puerto Octay,-40.9736,-72.9002,Baja
+123101,1905,10,Hospital de Purranque,Hospital Purranque,-40.9074,-73.1689,Mediana
+123102,1906,10,Hospital de RÃ­o Negro,Hospital de RÃ­o Negro,-40.7839,-73.2163,Baja
+123105,1908,10,Hospital del Perpetuo Socorro de QuilacahuÃ­n,Hospital del Perpetuo Socorro de QuilacahuÃ­n,-40.7554,-73.4516,Baja
+124130,2003,10,Hospital de Calbuco,Hospital Calbuco,-41.7726,-73.1315,Baja
+124120,2005,10,Hospital de Fresia,Hospital de Fresia,-41.1517,-73.4081,Baja
+124115,2006,10,Hospital de Frutillar,Hospital de Frutillar,-41.1267,-73.0707,Baja
+124145,2007,10,Hospital de FutaleufÃº,Hospital FutaleufÃº,-43.1863,-71.8684,Baja
+124110,2008,10,Hospital de Llanquihue,Hospital de Llanquihue,-41.2606,-73.0042,Baja
+124125,2009,10,Hospital de MaullÃ­n,Hospital de MaullÃ­n,-41.6192,-73.6056,Baja
+124140,20010,10,Hospital de Palena,Hospital de Palena,-43.6161,-71.8036,Baja
+124105,20011,10,Hospital de Puerto Montt,Hospital de Puerto Montt,-41.4687,-72.9411,Alta
+125104,2104,11,Hospital Dr. Jorge Ibar (Cisnes),Hospital de Cisnes,-44.7477,-72.6964,Baja
+125102,2105,11,Hospital Dr. Leopoldo Ortega R. (Chile Chico),Hospital de Chile Chico,-46.5416,-71.7265,Baja
+125103,2106,11,Hospital Lord Cochrane,Hospital de Cochrane,-47.2549,-72.5687,Baja
+125100,2107,11,Hospital Regional (Coihaique),Hospital de Coyhaique,-45.5713,-72.0661,Alta
+125101,2108,11,Hospital de Puerto AysÃ©n,Hospital de Puerto AysÃ©n,-45.4037,-72.6993,Mediana
+126102,2203,12,Hospital Dr. Marco Antonio Chamorro ( Porvenir),Hospital Porvenir,-53.2984,-70.3683,Baja
+126101,2204,12,Hospital Dr. Augusto Essmann Burgos ( Natales),Hospital de Puerto Natales,-51.7264,-72.5143,Mediana
+126100,2205,12,Hospital ClÃ­nico de Magallanes Dr. Lautaro Navarro Avaria,Hospital Regional de Punta Arenas,-53.1598,-70.9056,Alta
+126704,22012,12,Hospital Comunitario Cristina CalderÃ³n de Puerto Williams,Hospital Comunitario Cristina Calderon de Puerto Williams,-54.9334,-67.6108,Baja
+112103,2303,13,Instituto Nacional de Enfermedades Respiratorias y CirugÃ­a TorÃ¡cica,Hospital del TÃ³rax,-33.4428,-70.6193,Alta
+112102,2304,13,Hospital de NiÃ±os Dr. Luis Calvo Mackenna (Santiago - Providencia),Hospital Luis Calvo Mackenna,-33.4401,-70.6112,Alta
+112101,2305,13,Hospital Dr. Luis TisnÃ© B. (Santiago - PeÃ±alolÃ©n),Hospital Santiago Oriente Luis Tisne,-33.4711,-70.5302,Alta
+112100,2306,13,Hospital Del Salvador (Santiago - Providencia),Hospital Salvador,-33.4345,-70.6196,Alta
+112106,2307,13,Instituto Nacional GeriÃ¡trico Presidente Eduardo Frei Montalva,Instituto de GeriatrÃ­a,-33.4269,-70.6456,Alta
+112104,2308,13,Instituto de NeurocirugÃ­a Dr. Alfonso Asenjo,Instituto de NeurocirugÃ­a,-33.4384,-70.6492,Alta
+112105,2309,13,Instituto Nacional de RehabilitaciÃ³n Infantil Presidente Pedro Aguirre Cerda,Instituto Pedro Aguirre Cerda,-33.4285,-70.6498,Alta
+112107,23010,13,Hospital Hanga Roa (Isla De Pascua),Hospital de Hanga Roa,-27.1501,-109.4209,Baja
+111100,2404,13,Hospital ClÃ­nico San Borja-ArriarÃ¡n (Santiago - Santiago),Hospital ClÃ­nico San Borja Arriaran,-33.4566,-70.6495,Alta
+111101,2406,13,Hospital ClÃ­nico Metropolitano El Carmen Doctor Luis ValentÃ­n Ferrada,Hospital El Carmen,-33.5089,-70.7552,Alta
+111351,3101,13,Centro de Referencia de Salud de MaipÃº,Centro de Referencia de Salud MaipÃº,-33.5116,-70.7603,Baja
+113100,2503,13,Hospital Barros Luco Trudeau (Santiago - San Miguel),Hospital Barros Luco Trudeau,-33.4866,-70.6614,Alta
+113160,2504,13,Hospital de Enfermedades Infecciosas Dr. Lucio CÃ³rdova (Santiago - San Miguel),Hospital Enfermedades Infecciosas,-33.4984,-70.6529,Mediana
+113130,2505,13,Hospital Dr. Exequiel GonzÃ¡lez CortÃ©s (Santiago - San Miguel),Hospital Exequiel GonzÃ¡lez CortÃ©s,-33.5013,-70.6541,Alta
+113150,2506,13,Hospital San Luis (Buin),Hospital San Luis de Buin,-33.7336,-70.7478,Mediana
+113170,2507,13,Hospital PsiquiÃ¡trico El Peral (Santiago - Puente Alto),Hospital Sanatorio El Peral,-33.5876,-70.5704,Mediana
+113180,2508,13,Hospital El Pino (Santiago - San Bernardo),Hospital Sanatorio El Pino,-33.6091,-70.7018,Alta
+109104,2604,13,Hospital de Til Til,Hospital de Til Til,-33.1383,-70.8035,Baja
+109101,2605,13,Hospital ClÃ­nico de NiÃ±os Dr. Roberto del RÃ­o (Santiago - Independencia),Hospital Roberto del RÃ­o,-33.4164,-70.6522,Alta
+109100,2606,13,Complejo Hospitalario San JosÃ© (Santiago - Independencia),Hospital San JosÃ©,-33.4074,-70.6415,Mediana
+109103,2607,13,Instituto Nacional del CÃ¡ncer Dr. CaupolicÃ¡n Pardo Correa (Santiago - Recoleta),Instituto Nacional del CÃ¡ncer,-33.3986,-70.6413,Alta
+109102,2608,13,Instituto PsiquiÃ¡trico Dr. JosÃ© Horwitz Barak (Santiago - Recoleta),Instituto PsiquiÃ¡trico,-33.4032,-70.6418,Alta
+110160,2704,13,Hospital de CuracavÃ­,Hospital de CuracavÃ­,-33.3961,-71.1549,Baja
+110150,2705,13,Hospital San JosÃ© (Melipilla),Hospital de Melipilla,-33.6864,-71.2145,Alta
+110140,2706,13,Hospital de PeÃ±aflor,Hospital de PeÃ±aflor,-33.6051,-70.8789,Mediana
+110130,2707,13,Hospital Adalberto Steeger (Talagante),Hospital de Talagante,-33.6727,-70.9278,Mediana
+110120,2708,13,Hospital Dr. FÃ©lix Bulnes Cerda (Santiago - Quinta Normal),Hospital FÃ©lix Bulnes,-33.4358,-70.6867,Alta
+110100,2709,13,Hospital San Juan de Dios (Santiago - Santiago),Hospital San Juan de Dios,-33.4378,-70.6632,Alta
+110110,27010,13,Instituto TraumatolÃ³gico Dr. Teodoro Gebauer,Instituto TraumatolÃ³gico,-33.4413,-70.6638,Alta
+114101,2805,13,Complejo Hospitalario Dr. SÃ³tero del RÃ­o (Santiago - Puente Alto),Hospital Sotero del RÃ­o,-33.5847,-70.5782,Alta
+114102,2806,13,Hospital San JosÃ© de Maipo,Hospital San JosÃ© de Maipo,-33.6764,-70.3508,Mediana
+114105,2807,13,Hospital ClÃ­nico Metropolitano La Florida Dra. Eloisa DÃ­az Inzunza,Hospital La Florida,-33.5208,-70.5994,Alta
+114103,3001,13,Hospital Padre Alberto Hurtado (San RamÃ³n),Hospital Padre Alberto Hurtado,-33.5119,-70.6446,Alta
+133150,3302,10,Hospital de Castro,Hospital Castro,-42.4794,-73.7659,Alta
+133165,3303,10,Hospital de QuellÃ³n,Hospital QuellÃ³n,-43.1171,-73.6256,Baja
+133160,3304,10,Hospital Comunitario de Achao,Hospital Achao,-42.4806,-73.4826,Baja
+133170,3305,10,Hospital de QueilÃ©n,Hospital Queilen,-42.8825,-73.4697,Baja
+133155,3306,10,Hospital de Ancud,Hospital Ancud,-41.8703,-73.8222,Mediana
+104102,405,3,Hospital Dr. Florencio Vargas (Diego de Almagro),Hospital Diego de Almagro,-26.3799,-70.2974,Baja
+123104,1907,10,Hospital Futa Sruka Lawenche Kunko Mapu Mo,Hospital MisiÃ³n San Juan de la Costa,-40.5785,-73.3772,Baja
+111195,2405,13,Hospital de Urgencia Asistencia Pï¿½blica Dr. Alejandro del Rï¿½o,004 Hospital De Urgencia Asistencia Publica,-33444,-70.6385,Alta
