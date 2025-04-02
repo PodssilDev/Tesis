@@ -3,6 +3,12 @@
 
 library(frontier)
 library(dplyr)
+library(openxlsx)
+library(readxl)
+library(scatterplot3d)
+library(rgl)
+library(tidyr)
+
 
 # ===================================================
 # CONSOLIDACIÓN DE DATOS
@@ -140,10 +146,84 @@ datos <- lapply(datos_iniciales, function(data) data[data$IdEstablecimiento %in%
 # Hasta aca tenemos 178 hospitales con las variables de entrada y salida necesarias
 
 # ==============================================
-#  MODELOS SFA
+#  MODELOS SFA PARA TODOS LOS AÑOS
 # ==============================================
 
-# Por ahora solo 2014 para ir probando
+procesar_sfa <- function(df) {
+  # ---- Modelo Egresos ----
+  mod_egresos <- sfa(
+    formula = log(Egresos.GRD + 1) ~ log(dias_cama_disponible + 1) + log(X21_value + 1) + log(X22_value + 1),
+    data    = df
+  )
+  eff_egresos <- efficiencies(mod_egresos)
+  
+  # ---- Modelo Consultas ----
+  mod_consultas <- sfa(
+    formula = log(Consultas + 1) ~ log(dias_cama_disponible + 1) + log(X21_value + 1) + log(X22_value + 1),
+    data    = df
+  )
+  eff_consultas <- efficiencies(mod_consultas)
+  
+  # ---- Modelo Quirofano ----
+  mod_quirofano <- sfa(
+    formula = log(Quirofano + 1) ~ log(dias_cama_disponible + 1) + log(X21_value + 1) + log(X22_value + 1),
+    data    = df
+  )
+  eff_quirofano <- efficiencies(mod_quirofano)
+  
+  # Agregamos esas columnas al data frame
+  df_nuevo <- df %>%
+    mutate(
+      eff_egresos   = eff_egresos,
+      eff_consultas = eff_consultas,
+      eff_quirofano = eff_quirofano,
+      dist_ideal = sqrt(
+        (1 - eff_egresos)^2 +
+          (1 - eff_consultas)^2 +
+          (1 - eff_quirofano)^2
+      ),
+      eff_global = 1 - dist_ideal / sqrt(3)
+    )
+  
+  return(df_nuevo)
+}
+
+# ACA en datos procesados se guardan las eficiencias desde 2014 a 2023
+# TO DO: Trabajar con 3 decimales como domi
+# Consultar: Calcular residuals y ruido?
+datos_procesados <- lapply(datos, procesar_sfa)
+##########################################################
+
+df_long <- bind_rows(
+  lapply(names(datos_procesados), function(year_name) {
+    df_year <- datos_procesados[[year_name]]
+    
+
+    df_year %>%
+      select(IdEstablecimiento, eff_global) %>%
+      mutate(Anio = year_name)  
+  })
+)
+
+
+df_wide <- df_long %>%
+  pivot_wider(
+    id_cols      = IdEstablecimiento,
+    names_from   = Anio,
+    values_from  = eff_global,
+    names_prefix = "Eficiencia_"  
+  )
+
+
+wb <- createWorkbook()
+addWorksheet(wb, "Eficiencias")
+writeData(wb, "Eficiencias", df_wide, rowNames = FALSE)
+
+saveWorkbook(wb, "eficiencias_por_ID.xlsx", overwrite = TRUE)
+
+# ==============================================
+#  AÑO 2014 (DESDE ACA HASTA ABAJO, PRUEBAS)
+# ==============================================
 d2014 = datos[["2014"]]
 
 # ================
@@ -168,7 +248,7 @@ head(eff_egresos)
 # ================
 
 mod_consultas <- sfa(
-  formula = log(Consultas) ~ log(dias_cama_disponible) + log(X21_value) + log(X22_value),
+  formula = log(Consultas + 1) ~ log(dias_cama_disponible + 1) + log(X21_value + 1) + log(X22_value + 1),
   data    = d2014
 )
 summary(mod_consultas)
@@ -181,7 +261,7 @@ head(eff_consultas)
 # ================
 
 mod_quirofano <- sfa(
-  formula = log(Quirofano) ~ log(dias_cama_disponible) + log(X21_value) + log(X22_value),
+  formula = log(Quirofano + 1) ~ log(dias_cama_disponible + 1) + log(X21_value + 1) + log(X22_value + 1),
   data    = d2014
 )
 summary(mod_quirofano)
@@ -199,22 +279,31 @@ head(d2014)
 
 
 
-# Sumar 1 si me da los 178.
+# Idea de Manuel: Distancia -> (1,1,1) punto ideal
 
-
-d2014_mod <- d2014 %>%
+d2014 <- d2014 %>%
   mutate(
-    Consultas_p1 = Consultas + 1,
-    cama_p1      = dias_cama_disponible + 1,
-    x21_p1       = X21_value + 1,
-    x22_p1       = X22_value + 1
+    dist_ideal = sqrt(
+      (1 - eff_egresos)^2 +
+        (1 - eff_consultas)^2 +
+        (1 - eff_quirofano)^2
+    ),
+    eff_global = 1 - dist_ideal / sqrt(3)
   )
 
-mod_consultas_p1 <- sfa(
-  formula = log(Consultas_p1) ~ log(cama_p1) + log(x21_p1) + log(x22_p1),
-  data    = d2014_mod
-)
+#scatterplot3d(
+#  x = d2014$eff_egresos,
+#  y = d2014$eff_consultas,
+#  z = d2014$eff_quirofano,
+#  pch = 16,
+#  main = "Eficiencias (por variable) año 2014"
+#)
 
-summary(mod_consultas_p1)
-eff_consultas_p1 <- efficiencies(mod_consultas_p1)
 
+#resid_sfa <- residuals(mod_quirofano)
+
+# Ineficiencia estimada (u_i)
+#ineff_sfa <- -log(eff_quirofano)
+
+# Termino de ruido estimado: v_i = e_i + u_i
+#noise_sfa <- resid_sfa + ineff_sfa
