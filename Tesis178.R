@@ -188,38 +188,61 @@ procesar_sfa <- function(df) {
   return(df_nuevo)
 }
 
-# ACA en datos procesados se guardan las eficiencias desde 2014 a 2023
-# TO DO: Trabajar con 3 decimales como domi
 # Consultar: Calcular residuals y ruido?
+# datos_procesados tienen los resultados de eficiencia por año
 datos_procesados <- lapply(datos, procesar_sfa)
-##########################################################
+
+# ===================================================
+# PASAR RESULTADOS A EXCEL
+# ===================================================
+
+df_ref <- datos_procesados[["2014"]] %>%
+  select(IdEstablecimiento, NombreHospital = `Nombre Establecimiento`) %>%
+  distinct() 
+
 
 df_long <- bind_rows(
   lapply(names(datos_procesados), function(year_name) {
     df_year <- datos_procesados[[year_name]]
     
-
     df_year %>%
       select(IdEstablecimiento, eff_global) %>%
-      mutate(Anio = year_name)  
+      mutate(Anio = year_name)
   })
 )
 
 
+df_long <- df_long %>%
+  left_join(df_ref, by = "IdEstablecimiento")
+
 df_wide <- df_long %>%
   pivot_wider(
-    id_cols      = IdEstablecimiento,
+    id_cols      = c(IdEstablecimiento, NombreHospital),
     names_from   = Anio,
     values_from  = eff_global,
-    names_prefix = "Eficiencia_"  
+    names_prefix = "Eficiencia_"
   )
 
+df_wide <- df_wide %>%
+  mutate(
+    across(
+      starts_with("Eficiencia_"),
+      ~ round(.x, 3)
+    )
+  )
 
+# Exportar a Excel
 wb <- createWorkbook()
 addWorksheet(wb, "Eficiencias")
 writeData(wb, "Eficiencias", df_wide, rowNames = FALSE)
+saveWorkbook(wb, "Resultados_eficiencias.xlsx", overwrite = TRUE)
 
-saveWorkbook(wb, "eficiencias_por_ID.xlsx", overwrite = TRUE)
+##########################################################
+
+# ===================================================
+# ANALISIS DE DETERMINANTES
+# ===================================================
+
 
 # ==============================================
 #  AÑO 2014 (DESDE ACA HASTA ABAJO, PRUEBAS)
