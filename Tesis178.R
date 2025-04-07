@@ -8,7 +8,11 @@ library(readxl)
 library(scatterplot3d)
 library(rgl)
 library(tidyr)
-
+library(purrr)
+library(randomForest)
+library(caret)
+library(Metrics)
+library(RColorBrewer)
 
 # ===================================================
 # CONSOLIDACIÓN DE DATOS
@@ -243,6 +247,238 @@ saveWorkbook(wb, "Resultados_eficiencias.xlsx", overwrite = TRUE)
 # ANALISIS DE DETERMINANTES
 # ===================================================
 
+datos_min <- map(
+  datos_procesados,                           
+  ~ .x %>%                                  
+    select(idEstablecimiento = IdEstablecimiento,
+           eff_global) %>%
+    distinct()                             
+)
+
+
+# =======================
+#  RANDOM FOREST
+# =======================
+
+analize_rf <- function(year, resultados_in, n_top, tipo){
+  #year <- 2014
+  print("---------------------------")
+  print(paste0("AÑO: ", year))
+  
+  data_path <- paste0("data/", year, "/", year, "_consolidated_data.csv")
+  
+  #print(data_path)
+  # Leer los datos consolidados
+  datos_consolidados <- read.table(data_path, sep = ";", header = TRUE)
+  colnames(datos_consolidados) <- gsub("\\.0$", "", colnames(datos_consolidados))
+  
+  df <- datos_consolidados
+  
+  
+  # Convertir columnas a enteros
+  df[colnames(datos_consolidados)] <- lapply(df[colnames(datos_consolidados)], as.integer)
+  
+  # Filtrar los resultados de VRS
+  df_vrs <- resultados_in[[as.character(year)]]
+  
+  
+  df_w_vrs <- df %>%
+    filter(idEstablecimiento %in% df_vrs$idEstablecimiento)
+  
+  # Combinar los DataFrames
+  df_merged_original <- merge(df_w_vrs, df_vrs, by = "idEstablecimiento", all.x = TRUE)
+  df_merged_clean <- df_merged_original[, colSums(is.na(df_merged_original)) == 0]
+  
+  
+  correlaciones <- cor(df_merged_clean[,-1])[tipo, ]
+  correlaciones <- correlaciones[!names(correlaciones) %in% tipo]
+  correlaciones_ordenadas <- sort(abs(correlaciones), decreasing = TRUE)
+  
+  top_correlacion <- head(correlaciones_ordenadas, n=n_top)
+  top_variables <- names(top_correlacion)
+  
+  
+  columnas_a_incluir <- c(tipo, top_variables)
+  
+  # Crear el DataFrame con las variables seleccionadas
+  df_top <- df_merged_clean[, columnas_a_incluir]
+  
+  
+  # PROBANDO RANDOM FOREST
+  
+  set.seed(123)  # Para reproducibilidad
+  
+  trainIndex <- createDataPartition(df_top[[tipo]], p = 0.7, list = FALSE)
+  
+  trainData <- df_top[trainIndex, ]
+  testData <- df_top[-trainIndex, ]
+  
+  control <- trainControl(method = "cv", number = 10)  # 10-fold CV
+  formula <- as.formula(paste(tipo, "~ ."))
+  
+  # Ajustar el modelo de Random Forest
+  modelo_rf <- randomForest(formula, 
+                            data = trainData, 
+                            importance = TRUE, 
+                            trControl = control, 
+                            ntree = 700,
+                            do.trace = 100 )
+  
+  
+  # Predicciones en el conjunto de prueba
+  predicciones <- predict(modelo_rf, newdata = testData)
+  
+  # Evaluar el rendimiento
+  r2 <- R2(predicciones, testData[[tipo]])
+  rmse <- rmse(predicciones, testData[[tipo]])
+  cat("R²:", r2, "\nRMSE:", rmse)
+  
+  # Importancia de las variables
+  importancia <- importance(modelo_rf)
+  
+  
+  print("---------------------------")
+  print("---------------------------")
+  
+  return(list(importancia = importancia,
+              modelo = modelo_rf,
+              correlaciones = top_correlacion))
+  print("Completado!")
+}
+
+# Aplicar Random Forest para cada año
+random_forest <- lapply(anios, function(anio) {analize_rf(anio, resultados_in = datos_min, 500, "eff_global")})
+# Asignar nombres a la lista de modelos
+names(random_forest) <- paste0(anios)
+
+# ===============================
+#  EXTRACCIÓN DE VARIABLES POR AÑO
+# ===============================
+
+# Función para calcular frecuencia y mediana
+calcular_estadisticas <- function(df) {
+  df$Frecuencia <- rowSums(!is.na(df[,-1]))  # Cuenta cuántos años tiene datos
+  df$Mediana <- apply(df[, -c(1, ncol(df))], 1, median, na.rm = TRUE)  # Mediana ignorando NA
+  return(df)
+}
+
+# Función para generar el dataframe con años como columnas
+crear_dataframe <- function(lista_metrica) {
+  df <- Reduce(function(x, y) merge(x, y, by = "Variable", all = TRUE), lista_metrica)
+  colnames(df)[-1] <- names(lista_metrica)  # Renombrar columnas con los años
+  return(df)
+}
+
+importancia_dataframe <- function(random_forest) {
+  
+  # Crear listas para almacenar cada métrica por año
+  lista_incmse <- list()
+  lista_incmse_10 <- list()
+  lista_incnp <- list()
+  lista_corr <- list()
+  lista_todos <- list()
+  lista_top50_incmse <- list()
+  
+  # Iterar sobre los años del 2014 al 2023
+  for (anio in 2014:2023) {
+    
+    # Extraer importancia y correlaciones
+    importancia <- data.frame(
+      Variable = rownames(random_forest[[as.character(anio)]][["importancia"]]), 
+      IncMSE = random_forest[[as.character(anio)]][["importancia"]][,1]
+    )
+    
+    # Extraer correlaciones
+    corr <- as.data.frame(random_forest[[as.character(anio)]][["correlaciones"]])
+    
+    # Agregar nombres de fila como columna y limpiar formato
+    corr$Variable <- rownames(corr)
+    corr$Corr <- corr[,1]
+    corr <- corr[, c("Variable", "Corr")]
+    rownames(corr) <- NULL
+    
+    # Unir las tablas por la columna 'Variable'
+    df_final <- merge(importancia, corr, by = "Variable")
+    
+    df_top50 <- df_final[order(-df_final$IncMSE), ][1:50, ]
+    df_top10 <- df_final[order(-df_final$IncMSE), ][1:10, ]
+    
+    # Guardar cada métrica en listas separadas con Variable como índice
+    lista_incmse[[as.character(anio)]] <- data.frame(Variable = df_top50$Variable, IncMSE = df_top50$IncMSE)
+    lista_incmse_10[[as.character(anio)]] <- data.frame(Variable = df_top10$Variable, IncMSE = df_top10$IncMSE)
+    lista_corr[[as.character(anio)]] <- data.frame(Variable = df_top50$Variable, Corr = df_top50$Corr)
+    lista_todos[[as.character(anio)]] <- data.frame(Variable = df_top50$Variable, IncMSE = df_top50$IncMSE, Corr = df_top50$Corr)
+    
+    # Filtrar las 50 variables con mayor IncMSE en ese año
+    df_top50$Año <- anio
+    
+    # Guardar en la lista de Top 50
+    lista_top50_incmse[[as.character(anio)]] <- df_top50
+    
+  }
+  
+  
+  
+  # Crear dataframes con años como columnas
+  df_incmse <- crear_dataframe(lista_incmse)
+  df_incmse_10  <- crear_dataframe(lista_incmse_10)
+  
+  return(list(top_50 = lista_top50_incmse,
+              df_incmse = df_incmse,
+              df_incmse_10 = df_incmse_10,
+              df_incmse_est = calcular_estadisticas(df_incmse),
+              df_incmse_est_10 = calcular_estadisticas(df_incmse_10) ))
+}
+
+resultados_importancia <- importancia_dataframe(random_forest)
+
+# =======================
+#  DETERMINANTES A EXCEL
+# =======================
+
+wb <- createWorkbook()
+
+addWorksheet(wb, "Determinantes")
+writeData(
+  wb,
+  sheet = "Determinantes",
+  x = resultados_importancia[["df_incmse_est_10"]],
+  startRow = 1,
+  startCol = 1,
+  headerStyle = createStyle(textDecoration = "bold")
+)
+
+setColWidths(wb, sheet = "Determinantes", cols = 1:50, widths = "auto")
+
+
+# =================================
+#  DETERMINANTES A TABLA DE VALORES
+# =================================
+
+saveWorkbook(wb, "Determinantes_eficiencia.xlsx", overwrite = TRUE)
+
+df_incmse <- resultados_importancia[["df_incmse_10"]]
+df_incmse_all <- df_incmse
+df_long_all_comp <- df_incmse_all %>% pivot_longer(-Variable, names_to = "Año", values_to = "Valor")
+
+grafica <- ggplot(df_long_all_comp, aes(x = Año, y = Variable, fill = Valor)) +
+  geom_tile() +
+  theme_bw() +  # Cambiar a theme_bw() para fondo blanco
+  labs(title = "Matriz de valores por variable y año",
+       x = "Año", y = "Variable", fill = "Valor") +
+  scale_fill_gradientn(
+    colors = brewer.pal(11, "RdYlGn"),  # Paleta de colores RdYlGn
+    limits = range(df_long_all_comp$Valor, na.rm = TRUE)  # Escala de valores automática
+  ) +
+  theme(
+    panel.background = element_blank(),  # Fondo del panel en blanco
+    plot.background = element_blank(),   # Fondo del gráfico en blanco
+    panel.grid.major = element_blank(),  # Eliminar líneas de la cuadrícula principales
+    panel.grid.minor = element_blank()   # Eliminar líneas de la cuadrícula secundarias
+  )
+
+
+ggsave(paste0("determinantes.jpg"), plot = grafica, width = 15, height = 20, dpi = 500)
 
 # ==============================================
 #  AÑO 2014 (DESDE ACA HASTA ABAJO, PRUEBAS)
