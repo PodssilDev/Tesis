@@ -13,6 +13,15 @@ library(randomForest)
 library(caret)
 library(Metrics)
 library(RColorBrewer)
+library(rnaturalearthdata)
+library(rnaturalearth)
+library(chilemapas)
+library(gridExtra)
+library(corrplot)
+library(reshape2)
+library(ggplot2)
+library(plotly)
+library(sf)
 
 # ===================================================
 # CONSOLIDACIÓN DE DATOS
@@ -186,7 +195,7 @@ procesar_sfa <- function(df) {
           (1 - eff_consultas)^2 +
           (1 - eff_quirofano)^2
       ),
-      eff_global = 1 - dist_ideal / sqrt(3)
+      eff_global = round(1 - dist_ideal / sqrt(3),3)
     )
   
   return(df_nuevo)
@@ -201,7 +210,7 @@ datos_procesados <- lapply(datos, procesar_sfa)
 # ===================================================
 
 df_ref <- datos_procesados[["2014"]] %>%
-  select(IdEstablecimiento, NombreHospital = `Nombre Establecimiento`) %>%
+  select(IdEstablecimiento, NombreHospital = `Nombre Establecimiento`, complejidad) %>%
   distinct() 
 
 
@@ -221,25 +230,19 @@ df_long <- df_long %>%
 
 df_wide <- df_long %>%
   pivot_wider(
-    id_cols      = c(IdEstablecimiento, NombreHospital),
+    id_cols      = c(IdEstablecimiento, NombreHospital, complejidad),
     names_from   = Anio,
     values_from  = eff_global,
     names_prefix = "Eficiencia_"
   )
 
-df_wide <- df_wide %>%
-  mutate(
-    across(
-      starts_with("Eficiencia_"),
-      ~ round(.x, 3)
-    )
-  )
 
 # Exportar a Excel
 wb <- createWorkbook()
 addWorksheet(wb, "Eficiencias")
 writeData(wb, "Eficiencias", df_wide, rowNames = FALSE)
-saveWorkbook(wb, "Resultados_eficiencias.xlsx", overwrite = TRUE)
+setColWidths(wb, sheet = "Eficiencias", cols = 1:50, widths = "auto")
+saveWorkbook(wb, "Resultados_eficiencias_SFA.xlsx", overwrite = TRUE)
 
 ##########################################################
 
@@ -450,12 +453,11 @@ writeData(
 
 setColWidths(wb, sheet = "Determinantes", cols = 1:50, widths = "auto")
 
+saveWorkbook(wb, "Determinantes_eficiencia_SFA.xlsx", overwrite = TRUE)
 
 # =================================
 #  DETERMINANTES A TABLA DE VALORES
 # =================================
-
-saveWorkbook(wb, "Determinantes_eficiencia.xlsx", overwrite = TRUE)
 
 df_incmse <- resultados_importancia[["df_incmse_10"]]
 df_incmse_all <- df_incmse
@@ -478,7 +480,58 @@ grafica <- ggplot(df_long_all_comp, aes(x = Año, y = Variable, fill = Valor)) +
   )
 
 
-ggsave(paste0("determinantes.jpg"), plot = grafica, width = 15, height = 20, dpi = 500)
+ggsave(paste0("Determinantes_SFA.jpg"), plot = grafica, width = 15, height = 20, dpi = 500)
+
+
+# ==============================================
+#  GRAFICAS CHILE MAPAS EFICIENCIA POR AÑO
+# ==============================================
+
+world <- ne_countries(scale = "medium", returnclass = "sf")
+chile <- world[world$name == "Chile", ]
+comunas_sf <- chilemapas::mapa_comunas
+
+eficiencias_chile_grafica <- function(hospitales_df, anio, titulo) {
+  subtitulo_paste <-  paste0("Año ", anio)
+  
+  grafico <- ggplot(data = chile) +
+    geom_sf() +
+    ggtitle(titulo,  subtitle = subtitulo_paste) +
+    geom_point(
+      data = hospitales_df,
+      aes_string(
+        x = "longitud",
+        y = "latitud",
+        color = "eff_global"
+      ),
+      alpha = 0.7
+    ) +
+    scale_color_gradientn(
+      colors = RColorBrewer::brewer.pal(11, "RdYlGn"), # Asignar colores del 1 al 9 de la paleta "Spectral"
+      limits = c(0, 1)  # Escala de valores
+    ) +
+    labs(
+      x = "Longitud", y= "Latitud",
+      #title = paste(tipo, "- Año", anio),
+      color = "Valor",
+      size = "Valor"
+    ) +
+    theme_minimal()  +
+    theme(legend.position = "right",
+          legend.box = "vertical",                
+          plot.margin = unit(c(2, 2, 2, 2), "cm"),
+          plot.title = element_text(size = 14, face = "bold"),
+          plot.subtitle = element_text(size = 12),)
+  
+  print(grafico)
+  
+  ggsave(paste0(titulo,"_",subtitulo_paste,".jpg"), plot = grafico, width = 10, height = 8, dpi = 300)
+}
+
+lapply(anios, function(anio) {
+  eficiencias_chile_grafica(datos_procesados[[as.character(anio)]], anio, "Gráfica Chile - Eficiencia técnica")
+})
+
 
 # ==============================================
 #  AÑO 2014 (DESDE ACA HASTA ABAJO, PRUEBAS)
