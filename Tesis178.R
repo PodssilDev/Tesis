@@ -22,6 +22,7 @@ library(reshape2)
 library(ggplot2)
 library(plotly)
 library(sf)
+library(tibble)
 
 # ===================================================
 # CONSOLIDACIÓN DE DATOS
@@ -204,6 +205,124 @@ procesar_sfa <- function(df) {
 # Consultar: Calcular residuals y ruido?
 # datos_procesados tienen los resultados de eficiencia por año
 datos_procesados <- lapply(datos, procesar_sfa)
+
+# ===================================================
+# VERIFICAR NORMALIDAD DE EFICIENCIAS
+# ===================================================
+
+
+analizar_normalidad_eff_con_QQ <- function(datos_lista) {
+  
+  resultados <- list()
+  
+  for (anio in names(datos_lista)) {
+    
+    df <- datos_lista[[anio]]
+    
+    # Histograma
+    p_hist <- ggplot(df, aes(x = eff_global)) +
+      geom_histogram(bins = 30, color = "black", fill = "lightblue") +
+      labs(title = paste("Histograma eff_global -", anio),
+           x = "Eficiencia global", y = "Frecuencia") +
+      theme_minimal()
+    
+    # QQ-Plot
+    p_qq <- ggplot(df, aes(sample = eff_global)) +
+      stat_qq() +
+      stat_qq_line(col = "red") +
+      labs(title = paste("QQ-Plot eff_global -", anio),
+           x = "Cuantiles teóricos (Normal)", y = "Cuantiles de eff_global") +
+      theme_minimal()
+    
+    # Mostrar ambos juntos
+    gridExtra::grid.arrange(p_hist, p_qq, ncol = 2)
+    
+    # Prueba de Shapiro-Wilk
+    if (nrow(df) >= 3 && nrow(df) <= 5000) {
+      prueba <- shapiro.test(df$eff_global)
+      pvalor <- prueba$p.value
+    } else {
+      pvalor <- NA
+    }
+    
+    resultados[[anio]] <- pvalor
+  }
+  
+  # Devolver tabla de resultados
+  tibble::tibble(
+    Año = names(resultados),
+    p_value_Shapiro = unlist(resultados)
+  )
+}
+
+tabla_resultados <- analizar_normalidad_eff_con_QQ(datos_procesados)
+
+# ===================================================
+# OUTLIERS + ANALISIS DE SENSIBILIDAD
+# ===================================================
+
+library(dplyr)
+library(purrr)
+library(tibble)
+
+analisis_sensibilidad_outliers <- function(datos_lista) {
+  
+  # Función para detectar outliers usando 1.5 x IQR
+  es_outlier <- function(x) {
+    x <- as.vector(x)
+    q <- quantile(x, probs = c(0.25, 0.75), na.rm = TRUE)
+    iqr <- q[2] - q[1]
+    lim_inf <- q[1] - 1.5 * iqr
+    lim_sup <- q[2] + 1.5 * iqr
+    x < lim_inf | x > lim_sup
+  }
+  
+  # Inicializar listas para guardar resultados
+  resumen_sensibilidad <- list()
+  datos_limpios <- list()
+  
+  # Recorrer cada año
+  for (anio in names(datos_lista)) {
+    
+    df <- datos_lista[[anio]]
+    
+    # Etiquetar outliers
+    df <- df %>%
+      mutate(outlier = es_outlier(eff_global))
+    
+    # Dataset limpio
+    df_clean <- df %>%
+      filter(!outlier)
+    
+    # Guardar dataset limpio
+    datos_limpios[[anio]] <- df_clean
+    
+    # Calcular métricas antes y después
+    resumen_sensibilidad[[anio]] <- tibble(
+      Año = anio,
+      n_total = nrow(df),
+      n_outliers = sum(df$outlier),
+      media_original = mean(df$eff_global, na.rm = TRUE),
+      media_limpia   = mean(df_clean$eff_global, na.rm = TRUE),
+      mediana_original = median(df$eff_global, na.rm = TRUE),
+      mediana_limpia   = median(df_clean$eff_global, na.rm = TRUE),
+      sd_original = sd(df$eff_global, na.rm = TRUE),
+      sd_limpia   = sd(df_clean$eff_global, na.rm = TRUE)
+    )
+  }
+  
+  # Combinar resumen en una tabla
+  resumen_final <- bind_rows(resumen_sensibilidad)
+  
+  # Devolver todo junto
+  list(
+    resumen_metricas = resumen_final,
+    datos_sin_outliers = datos_limpios
+  )
+}
+
+resultado_sensibilidad <- analisis_sensibilidad_outliers(datos_procesados)
+
 
 # ===================================================
 # PASAR RESULTADOS A EXCEL
