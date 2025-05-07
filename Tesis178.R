@@ -29,7 +29,7 @@ library(tibble)
 # ===================================================
 consolidar_datos_por_anio <- function(anio) {
   
-  
+  #anio <- 2014
   # Definir rutas de archivos utilizando el año como variable
   path_hospitales <- paste0("data/", anio, "/", anio, "_hospitals.csv")
   path_hospitales_complejidades <- paste0("data/hospitales.csv")
@@ -222,16 +222,16 @@ analizar_normalidad_eff_con_QQ <- function(datos_lista) {
     # Histograma
     p_hist <- ggplot(df, aes(x = eff_global)) +
       geom_histogram(bins = 30, color = "black", fill = "lightblue") +
-      labs(title = paste("Histograma eff_global -", anio),
-           x = "Eficiencia global", y = "Frecuencia") +
+      labs(title = paste("Histograma Eficiencia -", anio),
+           x = "Eficiencia", y = "Frecuencia") +
       theme_minimal()
     
     # QQ-Plot
     p_qq <- ggplot(df, aes(sample = eff_global)) +
       stat_qq() +
       stat_qq_line(col = "red") +
-      labs(title = paste("QQ-Plot eff_global -", anio),
-           x = "Cuantiles teóricos (Normal)", y = "Cuantiles de eff_global") +
+      labs(title = paste("QQ-Plot Eficiencia -", anio),
+           x = "Cuantiles teóricos (Normal)", y = "Cuantiles de Eficiencia") +
       theme_minimal()
     
     # Mostrar ambos juntos
@@ -257,75 +257,101 @@ analizar_normalidad_eff_con_QQ <- function(datos_lista) {
 
 tabla_resultados <- analizar_normalidad_eff_con_QQ(datos_procesados)
 
+# Los datos NO son normaless en ninguno de sus años
+
 # ===================================================
 # OUTLIERS + ANALISIS DE SENSIBILIDAD
 # ===================================================
 
-library(dplyr)
-library(purrr)
-library(tibble)
-
-analisis_sensibilidad_outliers <- function(datos_lista) {
+analisis_sensibilidad_outliers_por_anno <- function(datos_lista, nombre_categoria = "complejidad") {
   
-  # Función para detectar outliers usando 1.5 x IQR
   es_outlier <- function(x) {
     x <- as.vector(x)
-    q <- quantile(x, probs = c(0.25, 0.75), na.rm = TRUE)
+    q <- quantile(x, c(0.25, 0.75), na.rm = TRUE)
     iqr <- q[2] - q[1]
     lim_inf <- q[1] - 1.5 * iqr
     lim_sup <- q[2] + 1.5 * iqr
     x < lim_inf | x > lim_sup
   }
   
-  # Inicializar listas para guardar resultados
-  resumen_sensibilidad <- list()
-  datos_limpios <- list()
+  resumen_metricas <- list()
+  datos_sin_outliers <- list()
   
-  # Recorrer cada año
   for (anio in names(datos_lista)) {
     
     df <- datos_lista[[anio]]
     
-    # Etiquetar outliers
+    # Detectar outliers por todo el año
     df <- df %>%
       mutate(outlier = es_outlier(eff_global))
     
-    # Dataset limpio
-    df_clean <- df %>%
-      filter(!outlier)
+    # Guardar versión limpia
+    df_clean <- df %>% filter(!outlier)
+    datos_sin_outliers[[anio]] <- df_clean
     
-    # Guardar dataset limpio
-    datos_limpios[[anio]] <- df_clean
+    # Calcular métricas antes y después por categoría
+    resumen_ano <- df %>%
+      group_by(.data[[nombre_categoria]]) %>%
+      summarise(
+        Año = anio,
+        n_total = n(),
+        n_outliers = sum(outlier),
+        media_original = mean(eff_global, na.rm = TRUE),
+        media_limpia   = mean(eff_global[!outlier], na.rm = TRUE),
+        mediana_original = median(eff_global, na.rm = TRUE),
+        mediana_limpia   = median(eff_global[!outlier], na.rm = TRUE),
+        sd_original = sd(eff_global, na.rm = TRUE),
+        sd_limpia   = sd(eff_global[!outlier], na.rm = TRUE),
+        .groups = "drop"
+      )
     
-    # Calcular métricas antes y después
-    resumen_sensibilidad[[anio]] <- tibble(
-      Año = anio,
-      n_total = nrow(df),
-      n_outliers = sum(df$outlier),
-      media_original = mean(df$eff_global, na.rm = TRUE),
-      media_limpia   = mean(df_clean$eff_global, na.rm = TRUE),
-      mediana_original = median(df$eff_global, na.rm = TRUE),
-      mediana_limpia   = median(df_clean$eff_global, na.rm = TRUE),
-      sd_original = sd(df$eff_global, na.rm = TRUE),
-      sd_limpia   = sd(df_clean$eff_global, na.rm = TRUE)
-    )
+    resumen_metricas[[anio]] <- resumen_ano
   }
   
-  # Combinar resumen en una tabla
-  resumen_final <- bind_rows(resumen_sensibilidad)
+  resumen_final <- bind_rows(resumen_metricas)
   
-  # Devolver todo junto
   list(
     resumen_metricas = resumen_final,
-    datos_sin_outliers = datos_limpios
+    datos_sin_outliers = datos_sin_outliers
   )
 }
 
-resultado_sensibilidad <- analisis_sensibilidad_outliers(datos_procesados)
+resultado_corregido <- analisis_sensibilidad_outliers_por_anno(datos_procesados, nombre_categoria = "complejidad")
+
+# ===================================================
+# PRUEBA DE WILCOXON PARA SABER SI OUTLIERS AFECTAN
+# ===================================================
+
+aplicar_wilcoxon_por_categoria <- function(df_metricas) {
+  
+  df_resultado <- df_metricas %>%
+    rowwise() %>%
+    mutate(
+      p_value = tryCatch(
+        wilcox.test(
+          x = c(media_original),
+          y = c(media_limpia),
+          paired = TRUE
+        )$p.value,
+        error = function(e) NA
+      ),
+      interpretacion = case_when(
+        is.na(p_value) ~ "No aplica (sin outliers)",
+        p_value < 0.05 ~ "Diferencia significativa",
+        TRUE           ~ "Sin diferencia significativa"
+      )
+    ) %>%
+    ungroup()
+  
+  return(df_resultado)
+}
+
+resultado_wilcoxon <- aplicar_wilcoxon_por_categoria(resultado_corregido$resumen_metricas)
+print(resultado_wilcoxon)
 
 
 # ===================================================
-# PASAR RESULTADOS A EXCEL
+# PASAR EFICIENCIAS A EXCEL
 # ===================================================
 
 df_ref <- datos_procesados[["2014"]] %>%
@@ -361,7 +387,7 @@ wb <- createWorkbook()
 addWorksheet(wb, "Eficiencias")
 writeData(wb, "Eficiencias", df_wide, rowNames = FALSE)
 setColWidths(wb, sheet = "Eficiencias", cols = 1:50, widths = "auto")
-saveWorkbook(wb, "Resultados_eficiencias_SFA.xlsx", overwrite = TRUE)
+saveWorkbook(wb, "Eficiencias_SFA_2014-2023.xlsx", overwrite = TRUE)
 
 ##########################################################
 
@@ -572,7 +598,7 @@ writeData(
 
 setColWidths(wb, sheet = "Determinantes", cols = 1:50, widths = "auto")
 
-saveWorkbook(wb, "Determinantes_eficiencia_SFA.xlsx", overwrite = TRUE)
+saveWorkbook(wb, "Determinantes_eficiencia_SFA_2014-2023.xlsx", overwrite = TRUE)
 
 # =================================
 #  DETERMINANTES A TABLA DE VALORES
@@ -606,50 +632,69 @@ ggsave(paste0("Determinantes_SFA.jpg"), plot = grafica, width = 15, height = 20,
 #  GRAFICAS CHILE MAPAS EFICIENCIA POR AÑO
 # ==============================================
 
+# polígonos de Chile continental
 world <- ne_countries(scale = "medium", returnclass = "sf")
 chile <- world[world$name == "Chile", ]
-comunas_sf <- chilemapas::mapa_comunas
 
-eficiencias_chile_grafica <- function(hospitales_df, anio, titulo) {
-  subtitulo_paste <-  paste0("Año ", anio)
+# -------------------------------------------------------------------
+#   Función: mapa de eficiencia – solo Chile continental
+eficiencias_chile_grafica <- function(hospitales_df,
+                                      anio,
+                                      titulo,
+                                      ancho_px_extra = TRUE) {
   
-  grafico <- ggplot(data = chile) +
-    geom_sf() +
-    ggtitle(titulo,  subtitle = subtitulo_paste) +
-    geom_point(
-      data = hospitales_df,
-      aes_string(
-        x = "longitud",
-        y = "latitud",
-        color = "eff_global"
-      ),
-      alpha = 0.7
-    ) +
-    scale_color_gradientn(
-      colors = RColorBrewer::brewer.pal(11, "RdYlGn"), # Asignar colores del 1 al 9 de la paleta "Spectral"
-      limits = c(0, 1)  # Escala de valores
-    ) +
-    labs(
-      x = "Longitud", y= "Latitud",
-      #title = paste(tipo, "- Año", anio),
-      color = "Valor",
-      size = "Valor"
-    ) +
-    theme_minimal()  +
+  subt <- paste0("Año ", anio)
+  hosp_cont <- hospitales_df %>% dplyr::filter(longitud >= -80)
+  
+  # ── mapa ──────────────────────────────────────────
+  grafico <- ggplot(chile) +
+    geom_sf(fill = "grey95") +
+    geom_point(data   = hosp_cont,
+               aes(longitud, latitud, colour = eff_global),
+               alpha = .7, size = 2) +
+    scale_colour_gradientn(colours = RColorBrewer::brewer.pal(11, "RdYlGn"),
+                           limits  = c(0, 1), name = "Valor") +
+    scale_x_continuous(breaks = c(-80,-75,-70,-65),
+                       labels = c("80° W","75° W","70° W","65° W")) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+    
+    # A) ventana longitudinal más ancha  (−82…−64)
+    coord_sf(xlim = c(-82, -64), ylim = c(-56, -17)) +
+    
+    labs(title = titulo, subtitle = subt,
+         x = "Longitud", y = "Latitud") +
+    theme_minimal() +
     theme(legend.position = "right",
-          legend.box = "vertical",                
-          plot.margin = unit(c(2, 2, 2, 2), "cm"),
-          plot.title = element_text(size = 14, face = "bold"),
-          plot.subtitle = element_text(size = 12),)
+          plot.title    = element_text(face = "bold", size = 14),
+          plot.subtitle = element_text(size = 12))
   
   print(grafico)
   
-  ggsave(paste0(titulo,"_",subtitulo_paste,".jpg"), plot = grafico, width = 10, height = 8, dpi = 300)
+  # B) exportar con ancho/alto más generoso si se pide
+  if (ancho_px_extra) {
+    ggsave(paste0(titulo, "_Año_", anio, ".jpg"),
+           plot   = grafico,
+           width  = 14,   # ← más ancho
+           height = 8,
+           dpi    = 300)
+  } else {
+    ggsave(paste0(titulo, "_Año_", anio, ".jpg"),
+           plot   = grafico,
+           width  = 10,
+           height = 8,
+           dpi    = 300)
+  }
 }
 
-lapply(anios, function(anio) {
-  eficiencias_chile_grafica(datos_procesados[[as.character(anio)]], anio, "Gráfica Chile - Eficiencia técnica")
-})
+# -------- genera para todos los años --------
+lapply(anios, function(a)
+  eficiencias_chile_grafica(
+    datos_procesados[[as.character(a)]],
+    anio   = a,
+    titulo = "Gráfica Chile - Eficiencia técnica",
+    ancho_px_extra = TRUE          # pon FALSE si no quieres la opción B
+  ))
+
 
 
 # ==============================================
@@ -712,15 +757,73 @@ head(d2014)
 
 # Idea de Manuel: Distancia -> (1,1,1) punto ideal
 
-d2014 <- d2014 %>%
-  mutate(
-    dist_ideal = sqrt(
-      (1 - eff_egresos)^2 +
-        (1 - eff_consultas)^2 +
-        (1 - eff_quirofano)^2
-    ),
-    eff_global = 1 - dist_ideal / sqrt(3)
-  )
+#d2014 <- d2014 %>%
+#  mutate(
+#    dist_ideal = sqrt(
+#      (1 - eff_egresos)^2 +
+#        (1 - eff_consultas)^2 +
+#        (1 - eff_quirofano)^2
+#    ),
+#    eff_global = 1 - dist_ideal / sqrt(3)
+#  )
+
+#analisis_sensibilidad_outliers <- function(datos_lista) {
+  
+  # Función para detectar outliers usando 1.5 x IQR
+#  es_outlier <- function(x) {
+#    x <- as.vector(x)
+#    q <- quantile(x, probs = c(0.25, 0.75), na.rm = TRUE)
+#    iqr <- q[2] - q[1]
+#    lim_inf <- q[1] - 1.5 * iqr
+#   lim_sup <- q[2] + 1.5 * iqr
+#    x < lim_inf | x > lim_sup
+#  }
+  
+  # Inicializar listas para guardar resultados
+#  resumen_sensibilidad <- list()
+#  datos_limpios <- list()
+  
+  # Recorrer cada año
+#  for (anio in names(datos_lista)) {
+    
+#    df <- datos_lista[[anio]]
+    
+    # Etiquetar outliers
+#    df <- df %>%
+#      mutate(outlier = es_outlier(eff_global))
+    
+    # Dataset limpio
+ #   df_clean <- df %>%
+#      filter(!outlier)
+    
+    # Guardar dataset limpio
+#    datos_limpios[[anio]] <- df_clean
+    
+#    # Calcular métricas antes y después
+#    resumen_sensibilidad[[anio]] <- tibble(
+#      Año = anio,
+#      n_total = nrow(df),
+#      n_outliers = sum(df$outlier),
+#      media_original = mean(df$eff_global, na.rm = TRUE),
+#      media_limpia   = mean(df_clean$eff_global, na.rm = TRUE),
+#      mediana_original = median(df$eff_global, na.rm = TRUE),
+#      mediana_limpia   = median(df_clean$eff_global, na.rm = TRUE),
+#      sd_original = sd(df$eff_global, na.rm = TRUE),
+#      sd_limpia   = sd(df_clean$eff_global, na.rm = TRUE)
+#    )
+#  }
+  
+  # Combinar resumen en una tabla
+#  resumen_final <- bind_rows(resumen_sensibilidad)
+  
+  # Devolver todo junto
+#  list(
+#    resumen_metricas = resumen_final,
+#    datos_sin_outliers = datos_limpios
+#  )
+#}
+
+#resultado_sensibilidaddd <- analisis_sensibilidad_outliers(datos_procesados)
 
 #scatterplot3d(
 #  x = d2014$eff_egresos,
