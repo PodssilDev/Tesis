@@ -1,5 +1,10 @@
-#source("functions.R")
-#source("graphics.R")
+# Tesis: Análisis de eficiencia técnica de hospitales públicos en Chile usando
+# SFA y DEA
+# Autor: John Serrano Carrasco
+
+# ===================================================
+# IMPORTACIÓN DE LIBRERÍAS
+# ===================================================
 
 library(frontier)
 library(dplyr)
@@ -27,6 +32,7 @@ library(tibble)
 # ===================================================
 # CONSOLIDACIÓN DE DATOS
 # ===================================================
+
 consolidar_datos_por_anio <- function(anio) {
   
   #anio <- 2014
@@ -140,6 +146,7 @@ consolidar_datos_por_anio <- function(anio) {
     relocate(region_id, .after = Region)
   
   all_sin_duplicados <- distinct(all)
+  
   return(all_sin_duplicados)
 }
 
@@ -157,11 +164,103 @@ names(datos_iniciales) <- as.character(anios)
 dmus_comunes <- Reduce(intersect, lapply(datos_iniciales, `[[`, "IdEstablecimiento"))
 datos <- lapply(datos_iniciales, function(data) data[data$IdEstablecimiento %in% dmus_comunes, ])
 
-# Hasta aca tenemos 178 hospitales con las variables de entrada y salida necesarias
+datos[["2021"]][["complejidad"]][[149]] <- "Baja"
+datos[["2021"]][["complejidad"]][[56]] <- "Alta"
+datos[["2021"]][["latitud"]][[149]] <- -40.5785
+datos[["2021"]][["latitud"]][[56]] <- -33.4442
+datos[["2021"]][["longitud"]][[149]] <- -73.3772
+datos[["2021"]][["longitud"]][[56]] <- -70.6385
+datos[["2021"]][["region_id"]][[56]] <- 13
+
+
+
+# ============================================================
+#  Función:  check_sfa_diagnostics()
+#  Qué hace:
+#    1) Calcula   ê  (residuals)
+#    2) Calcula   û  (ineficiencia estimada)   y  v̂ = ê + û
+#    3) Muestra:
+#         • Histograma de ê
+#         • QQ-plot + Shapiro de v̂   (≈ ruido)
+#         • Histograma de û           (debe ser positiva y sesgada dcha.)
+#         • Valor medio de ê
+# ============================================================
+# ============================================================
+#  Función: check_sfa_diagnostics()
+#  Diagnósticos básicos para un modelo SFA de 'frontier'
+#     • Histograma de ê  (residual total)
+#     • Histograma de û   (ineficiencia)
+#     • QQ-plot + Shapiro de v̂  (ruido ≈ Normal)
+#     • Promedio de ê
+# ============================================================
+check_sfa_diagnostics <- function(mod_sfa) {
+
+  # ---------- 1. residuales totales ê ----------
+  e_hat <- residuals(mod_sfa)
+  
+  # ---------- 2. ineficiencia û  ----------------
+  eff_hat <- as.numeric(efficiencies(mod_sfa))   # exp(−û)
+  u_hat   <- -log(eff_hat)                       # û ≥ 0
+  
+  # ---------- 3. ruido v̂  ----------------------
+  v_hat <- e_hat + u_hat                         # v̂ debería ~ N(0,σ_v²)
+  
+  # ---------- 4. gráficos -----------------------
+  p_e <- ggplot(data.frame(e_hat = e_hat),
+                aes(x = e_hat)) +
+    geom_histogram(fill = "skyblue", colour = "black", bins = 30) +
+    labs(title = "Histograma ê (residual total)",
+         x = "ê", y = "Frecuencia") +
+    theme_minimal()
+  
+  p_u <- ggplot(data.frame(u_hat = u_hat),
+                aes(x = u_hat)) +
+    geom_histogram(fill = "orange", colour = "black", bins = 30) +
+    labs(title = "Histograma û (ineficiencia)",
+         x = "û", y = "Frecuencia") +
+    theme_minimal()
+  
+  p_qq <- ggplot(data.frame(v_hat = v_hat),
+                 aes(sample = v_hat)) +        #  <-- sample = v_hat
+    stat_qq() +
+    stat_qq_line(colour = "red") +
+    labs(title = "QQ-plot v̂ (ruido)",
+         x = "Cuantiles teóricos N(0,1)",
+         y = "Cuantiles v̂") +
+    theme_minimal()
+  
+  # ---------- 5. Shapiro-Wilk para v̂ -----------
+  if (length(v_hat) <= 5000) {
+    cat("\n--- Shapiro-Wilk para v̂ (n =", length(v_hat), ") ---\n")
+    print(shapiro.test(v_hat))
+  } else {
+    cat("\n--- Muestra > 5000: Shapiro-Wilk no aplicable ---\n")
+  }
+  
+  # ---------- 6. Promedio de ê -----------------
+  cat("\nPromedio(ê) = ", mean(e_hat), "\n")
+  
+  # ---------- 7. Mostrar plots juntos ----------
+  gridExtra::grid.arrange(p_e, p_u, p_qq, ncol = 2)
+  
+  invisible(list(e_hat = e_hat, u_hat = u_hat, v_hat = v_hat))
+}
+
+# --------------------- Ejemplo ---------------------
+# mod_sfa <- sfa(log(Y) ~ log(X1) + log(X2), data = df)
+# check_sfa_diagnostics(mod_sfa)
+
+
+# ----------------- Ejemplo de uso -----------------
+# mod_sfa <- sfa(log(Y) ~ log(X1) + log(X2), data = df)
+f <- check_sfa_diagnostics(mod_egresos)
+
 
 # ==============================================
 #  MODELOS SFA PARA TODOS LOS AÑOS
 # ==============================================
+
+#df <- datos[["2014"]]
 
 procesar_sfa <- function(df) {
   # ---- Modelo Egresos ----
@@ -170,6 +269,10 @@ procesar_sfa <- function(df) {
     data    = df
   )
   eff_egresos <- efficiencies(mod_egresos)
+  
+  #resid_sfa <- residuals(mod_egresos)   # vector, una entrada por observación
+  
+  #head(resid_sfa)p
   
   # ---- Modelo Consultas ----
   mod_consultas <- sfa(
@@ -202,7 +305,6 @@ procesar_sfa <- function(df) {
   return(df_nuevo)
 }
 
-# Consultar: Calcular residuals y ruido?
 # datos_procesados tienen los resultados de eficiencia por año
 datos_procesados <- lapply(datos, procesar_sfa)
 
@@ -257,10 +359,10 @@ analizar_normalidad_eff_con_QQ <- function(datos_lista) {
 
 tabla_resultados <- analizar_normalidad_eff_con_QQ(datos_procesados)
 
-# Los datos NO son normaless en ninguno de sus años
+# Los datos NO son normales en ninguno de sus años
 
 # ===================================================
-# OUTLIERS + ANALISIS DE SENSIBILIDAD
+# OUTLIERS + ESTADISTICAS OUTLIERS
 # ===================================================
 
 analisis_sensibilidad_outliers_por_anno <- function(datos_lista, nombre_categoria = "complejidad") {
@@ -300,6 +402,8 @@ analisis_sensibilidad_outliers_por_anno <- function(datos_lista, nombre_categori
         media_limpia   = mean(eff_global[!outlier], na.rm = TRUE),
         mediana_original = median(eff_global, na.rm = TRUE),
         mediana_limpia   = median(eff_global[!outlier], na.rm = TRUE),
+        var_original = var(eff_global, na.rm = TRUE),
+        var_limpia = var(eff_global[!outlier], na.rm = TRUE),
         sd_original = sd(eff_global, na.rm = TRUE),
         sd_limpia   = sd(eff_global[!outlier], na.rm = TRUE),
         .groups = "drop"
@@ -317,6 +421,10 @@ analisis_sensibilidad_outliers_por_anno <- function(datos_lista, nombre_categori
 }
 
 resultado_corregido <- analisis_sensibilidad_outliers_por_anno(datos_procesados, nombre_categoria = "complejidad")
+
+datos_sin_outlier <- resultado_corregido$datos_sin_outliers
+
+#nuevos_datos_procesados <- lapply(datos_sin_outlier, procesar_sfa)
 
 # ===================================================
 # PRUEBA DE WILCOXON PARA SABER SI OUTLIERS AFECTAN
@@ -349,19 +457,154 @@ aplicar_wilcoxon_por_categoria <- function(df_metricas) {
 resultado_wilcoxon <- aplicar_wilcoxon_por_categoria(resultado_corregido$resumen_metricas)
 print(resultado_wilcoxon)
 
+# ===================================================
+# ANALISIS DE SENSIBILIDAD
+# ===================================================
+
+# Fórmulas para cada salida
+formula_egresos   <- log(Egresos.GRD + 1) ~ log(dias_cama_disponible + 1) + log(X21_value + 1) + log(X22_value + 1)
+formula_consultas <- log(Consultas + 1) ~ log(dias_cama_disponible + 1) + log(X21_value + 1) + log(X22_value + 1)
+formula_quirofano <- log(Quirofano + 1) ~ log(dias_cama_disponible + 1) + log(X21_value + 1) + log(X22_value + 1)
+
+sensibilidad_resultados <- list()
+
+for (anio in names(datos)) {
+  cat("\n=======\nAÑO", anio, "\n=======\n")
+  
+  df_ori <- datos[[anio]]
+  df_proc <- datos_procesados[[anio]]
+  
+  # Extraer eficiencias originales
+  eff_egresos_ori   <- df_proc$eff_egresos
+  eff_consultas_ori <- df_proc$eff_consultas
+  eff_quirofano_ori <- df_proc$eff_quirofano
+  eff_global_ori    <- df_proc$eff_global
+  
+  # Identificar outliers en eficiencia global
+  Q1 <- quantile(eff_global_ori, 0.25, na.rm = TRUE)
+  Q3 <- quantile(eff_global_ori, 0.75, na.rm = TRUE)
+  IQR <- Q3 - Q1
+  lim_inf <- Q1 - 1.5 * IQR
+  lim_sup <- Q3 + 1.5 * IQR
+  no_outliers <- eff_global_ori >= lim_inf & eff_global_ori <= lim_sup
+  
+  cat("N hospitales:", nrow(df_proc), " | Outliers:", sum(!no_outliers), "\n")
+  
+  # Filtrar sin outliers
+  df_sin_out <- df_ori[no_outliers, ]
+  
+  # Recalcular eficiencias SFA (sin outliers)
+  mod_egresos   <- sfa(formula_egresos,   data = df_sin_out)
+  mod_consultas <- sfa(formula_consultas, data = df_sin_out)
+  mod_quirofano <- sfa(formula_quirofano, data = df_sin_out)
+  
+  eff_egresos_new    <- as.numeric(efficiencies(mod_egresos))
+  eff_consultas_new  <- as.numeric(efficiencies(mod_consultas))
+  eff_quirofano_new  <- as.numeric(efficiencies(mod_quirofano))
+  eff_global_new     <- 1 - sqrt((1-eff_egresos_new)^2 + (1-eff_consultas_new)^2 + (1-eff_quirofano_new)^2) / sqrt(3)
+  
+  # Emparejar por IdEstablecimiento
+  comp_df <- data.frame(
+    IdEstablecimiento = df_sin_out$IdEstablecimiento,
+    #eff_egresos_ori = eff_egresos_ori[no_outliers],
+    #eff_egresos_new = eff_egresos_new,
+    #eff_consultas_ori = eff_consultas_ori[no_outliers],
+    #ff_consultas_new = eff_consultas_new,
+    #eff_quirofano_ori = eff_quirofano_ori[no_outliers],
+    # eff_quirofano_new = eff_quirofano_new,
+    eff_global_ori = eff_global_ori[no_outliers],
+    eff_global_new = eff_global_new
+  )
+  
+  # Calcular correlaciones
+  #cor_egresos   <- cor(comp_df$eff_egresos_ori,   comp_df$eff_egresos_new)
+  #cor_consultas <- cor(comp_df$eff_consultas_ori, comp_df$eff_consultas_new)
+  #  cor_quirofano <- cor(comp_df$eff_quirofano_ori, comp_df$eff_quirofano_new)
+  cor_global    <- cor(comp_df$eff_global_ori,    comp_df$eff_global_new)
+  
+  cat("Correlaciones:\n",
+    #  "- Egresos:   ", round(cor_egresos,   3), "\n",
+    #  "- Consultas: ", round(cor_consultas, 3), "\n",
+    #  "- Quirófano: ", round(cor_quirofano, 3), "\n",
+      "- Global:    ", round(cor_global,    3), "\n")
+  
+  sensibilidad_resultados[[anio]] <- list(
+    outliers = which(!no_outliers),
+    n_outliers = sum(!no_outliers),
+    comp_df = comp_df,
+    correlacion_global = cor_global,
+    #correlacion_egresos = cor_egresos,
+    #correlacion_consultas = cor_consultas,
+    #correlacion_quirofano = cor_quirofano,
+    summary_ori = summary(comp_df$eff_global_ori),
+    summary_new = summary(comp_df$eff_global_new)
+  )
+}
+
+# Paso 1: Extrae por año el IdEstablecimiento y la eficiencia recalculada
+efic_global_new_por_ano <- lapply(names(sensibilidad_resultados), function(anio) {
+  df <- sensibilidad_resultados[[anio]]$comp_df %>%
+    select(IdEstablecimiento, eff_global_new)
+  df$Anio <- anio
+  df
+})
+
+names(efic_global_new_por_ano)  <- paste0(anios)
+
+# Paso 2: Junta todos los años en un solo dataframe largo
+#efic_global_new_long <- bind_rows(efic_global_new_por_ano)
+
+# Paso 3: Llévalo a formato wide (hospitales como filas, años como columnas)
+#efic_global_new_wide <- efic_global_new_long %>%
+#  pivot_wider(
+#    names_from = Anio,
+#    values_from = eff_global_new,
+#    names_prefix = "Eficiencia_"
+#  )
+
+# Suponiendo que ejecutaste el ciclo anterior...
+correlaciones_por_anio <- data.frame(
+  Anio = names(sensibilidad_resultados),
+  Correlacion_Global = sapply(sensibilidad_resultados, function(x) x$correlacion_global)
+)
+
+print(correlaciones_por_anio)
+
+
+eficiencia_por_hospital_ano <- lapply(names(sensibilidad_resultados), function(anio) {
+  comp_df <- sensibilidad_resultados[[anio]]$comp_df
+  comp_df$Anio <- anio
+  # Selecciona solo ID y los dos valores de eficiencia global
+  comp_df %>%
+    select(IdEstablecimiento, Anio, eff_global_ori, eff_global_new)
+})
+
+# Unimos todo en un solo dataframe
+eficiencia_por_hospital_ano <- bind_rows(eficiencia_por_hospital_ano)
+
+#correlacion_por_hospital <- eficiencia_por_hospital_ano %>%
+#  group_by(IdEstablecimiento) %>%
+#  summarise(
+#    n_anos = n(),
+#    correlacion = ifelse(
+#      n_anos > 1,
+#      cor(eff_global_ori, eff_global_new, use = "complete.obs"),
+#      NA_real_
+#    )
+#  )
 
 # ===================================================
 # PASAR EFICIENCIAS A EXCEL
 # ===================================================
 
-df_ref <- datos_procesados[["2014"]] %>%
+df_ref <- nuevos_datos_procesados[["2014"]] %>%
   select(IdEstablecimiento, NombreHospital = `Nombre Establecimiento`, complejidad) %>%
   distinct() 
 
 
 df_long <- bind_rows(
-  lapply(names(datos_procesados), function(year_name) {
-    df_year <- datos_procesados[[year_name]]
+  lapply(names(nuevos_datos_procesados), function(year_name) {
+    df_year <- nuevos_datos_procesados[[year_name]]
     
     df_year %>%
       select(IdEstablecimiento, eff_global) %>%
@@ -387,7 +630,7 @@ wb <- createWorkbook()
 addWorksheet(wb, "Eficiencias")
 writeData(wb, "Eficiencias", df_wide, rowNames = FALSE)
 setColWidths(wb, sheet = "Eficiencias", cols = 1:50, widths = "auto")
-saveWorkbook(wb, "Eficiencias_SFA_2014-2023.xlsx", overwrite = TRUE)
+saveWorkbook(wb, "Eficiencias_SFA_outliers.xlsx", overwrite = TRUE)
 
 ##########################################################
 
@@ -395,6 +638,7 @@ saveWorkbook(wb, "Eficiencias_SFA_2014-2023.xlsx", overwrite = TRUE)
 # ANALISIS DE DETERMINANTES
 # ===================================================
 
+# USAR PARA LA VERSIÓN CON OUTLIERS
 datos_min <- map(
   datos_procesados,                           
   ~ .x %>%                                  
@@ -403,6 +647,16 @@ datos_min <- map(
     distinct()                             
 )
 
+# USAR PARA LA VERSIÓN SIN OUTLIERS
+#resultados_outliers <- resultado_corregido[["datos_sin_outliers"]]
+
+datos_min <- map(
+  efic_global_new_por_ano,                           
+  ~ .x %>%                                  
+    select(idEstablecimiento = IdEstablecimiento,
+           eff_global_new) %>%
+    distinct()                             
+)
 
 # =======================
 #  RANDOM FOREST
@@ -483,19 +737,21 @@ analize_rf <- function(year, resultados_in, n_top, tipo){
   
   # Importancia de las variables
   importancia <- importance(modelo_rf)
+  #importancia_2 = varImp(modelo_rf)
   
   
   print("---------------------------")
   print("---------------------------")
   
   return(list(importancia = importancia,
+  #            importancia_2 = importancia_2,
               modelo = modelo_rf,
               correlaciones = top_correlacion))
   print("Completado!")
 }
 
 # Aplicar Random Forest para cada año
-random_forest <- lapply(anios, function(anio) {analize_rf(anio, resultados_in = datos_min, 500, "eff_global")})
+random_forest <- lapply(anios, function(anio) {analize_rf(anio, resultados_in = datos_min, 500, "eff_global_new")})
 # Asignar nombres a la lista de modelos
 names(random_forest) <- paste0(anios)
 
@@ -554,7 +810,7 @@ importancia_dataframe <- function(random_forest) {
     # Guardar cada métrica en listas separadas con Variable como índice
     lista_incmse[[as.character(anio)]] <- data.frame(Variable = df_top50$Variable, IncMSE = df_top50$IncMSE)
     lista_incmse_10[[as.character(anio)]] <- data.frame(Variable = df_top10$Variable, IncMSE = df_top10$IncMSE)
-    lista_corr[[as.character(anio)]] <- data.frame(Variable = df_top50$Variable, Corr = df_top50$Corr)
+    lista_corr[[as.character(anio)]] <- data.frame(Variable = df_top10$Variable, Corr = df_top10$Corr)
     lista_todos[[as.character(anio)]] <- data.frame(Variable = df_top50$Variable, IncMSE = df_top50$IncMSE, Corr = df_top50$Corr)
     
     # Filtrar las 50 variables con mayor IncMSE en ese año
@@ -570,12 +826,16 @@ importancia_dataframe <- function(random_forest) {
   # Crear dataframes con años como columnas
   df_incmse <- crear_dataframe(lista_incmse)
   df_incmse_10  <- crear_dataframe(lista_incmse_10)
+  df_corr <- crear_dataframe(lista_corr)
+  df_todos <- crear_dataframe(lista_todos)
   
   return(list(top_50 = lista_top50_incmse,
               df_incmse = df_incmse,
               df_incmse_10 = df_incmse_10,
               df_incmse_est = calcular_estadisticas(df_incmse),
-              df_incmse_est_10 = calcular_estadisticas(df_incmse_10) ))
+              df_incmse_est_10 = calcular_estadisticas(df_incmse_10),
+              df_corr = df_corr,
+              df_todos = df_todos))
 }
 
 resultados_importancia <- importancia_dataframe(random_forest)
@@ -598,7 +858,7 @@ writeData(
 
 setColWidths(wb, sheet = "Determinantes", cols = 1:50, widths = "auto")
 
-saveWorkbook(wb, "Determinantes_eficiencia_SFA_2014-2023.xlsx", overwrite = TRUE)
+saveWorkbook(wb, "Determinantes_new_out_eficiencia_SFA_2014-2023.xlsx", overwrite = TRUE)
 
 # =================================
 #  DETERMINANTES A TABLA DE VALORES
@@ -631,6 +891,52 @@ ggsave(paste0("Determinantes_SFA.jpg"), plot = grafica, width = 15, height = 20,
 # ==============================================
 #  GRAFICAS CHILE MAPAS EFICIENCIA POR AÑO
 # ==============================================
+
+world <- ne_countries(scale = "medium", returnclass = "sf")
+chile <- world[world$name == "Chile", ]
+comunas_sf <- chilemapas::mapa_comunas
+
+eficiencias_chile_grafica <- function(hospitales_df, anio, titulo) {
+  subtitulo_paste <-  paste0("Año ", anio)
+  
+  grafico <- ggplot(data = chile) +
+    geom_sf() +
+    ggtitle(titulo,  subtitle = subtitulo_paste) +
+    geom_point(
+      data = hospitales_df,
+      aes_string(
+        x = "longitud",
+        y = "latitud",
+        color = "eff_global"
+      ),
+      alpha = 0.7
+    ) +
+    scale_color_gradientn(
+      colors = RColorBrewer::brewer.pal(11, "RdYlGn"), # Asignar colores del 1 al 9 de la paleta "Spectral"
+      limits = c(0, 1)  # Escala de valores
+    ) +
+    labs(
+      x = "Longitud", y= "Latitud",
+      #title = paste(tipo, "- Año", anio),
+      color = "Valor",
+      size = "Valor"
+    ) +
+    theme_minimal()  +
+    theme(legend.position = "right",
+          legend.box = "vertical",                
+          plot.margin = unit(c(2, 2, 2, 2), "cm"),
+          plot.title = element_text(size = 14, face = "bold"),
+          plot.subtitle = element_text(size = 12),)
+  
+  print(grafico)
+  
+  ggsave(paste0(titulo,"_",subtitulo_paste,".jpg"), plot = grafico, width = 10, height = 8, dpi = 300)
+}
+
+lapply(anios, function(anio) {
+  eficiencias_chile_grafica(datos_procesados[[as.character(anio)]], anio, "Gráfica Chile - Eficiencia técnica (HR)")
+})
+
 
 # polígonos de Chile continental
 world <- ne_countries(scale = "medium", returnclass = "sf")
