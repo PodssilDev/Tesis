@@ -28,7 +28,7 @@ library(ggplot2)
 library(plotly)
 library(sf)
 library(tibble)
-
+#library(deaR)
 # ===================================================
 # CONSOLIDACIÓN DE DATOS
 # ===================================================
@@ -173,7 +173,6 @@ datos[["2021"]][["longitud"]][[56]] <- -70.6385
 datos[["2021"]][["region_id"]][[56]] <- 13
 
 
-
 # ============================================================
 #  Función:  check_sfa_diagnostics()
 #  Qué hace:
@@ -260,15 +259,24 @@ f <- check_sfa_diagnostics(mod_egresos)
 #  MODELOS SFA PARA TODOS LOS AÑOS
 # ==============================================
 
-#df <- datos[["2014"]]
+df <- datos[["2014"]]
 
 procesar_sfa <- function(df) {
   # ---- Modelo Egresos ----
   mod_egresos <- sfa(
     formula = log(Egresos.GRD + 1) ~ log(dias_cama_disponible + 1) + log(X21_value + 1) + log(X22_value + 1),
+    #formula = log(Egresos.GRD + 1) ~ log(dias_cama_disponible + 1) + log(X21_value + 1) + log(X22_value + 1) +
+    #  I(0.5 * log(dias_cama_disponible + 1)^2) + I(0.5 * log(X21_value + 1)^2) + I(0.5 * log(X22_value + 1)^2) +
+    #  I(log(dias_cama_disponible + 1) * log(X21_value + 1)) + I(log(dias_cama_disponible + 1) * log(X22_value + 1)) +
+    #  I(log(X21_value + 1) * log(X22_value + 1)),
     data    = df
   )
   eff_egresos <- efficiencies(mod_egresos)
+  
+  
+  #logLik(mod_egresos)
+  #AIC(mod_egresos)
+  #BIC(mod_egresos)
   
   #resid_sfa <- residuals(mod_egresos)   # vector, una entrada por observación
   
@@ -277,6 +285,10 @@ procesar_sfa <- function(df) {
   # ---- Modelo Consultas ----
   mod_consultas <- sfa(
     formula = log(Consultas + 1) ~ log(dias_cama_disponible + 1) + log(X21_value + 1) + log(X22_value + 1),
+    #formula = log(Consultas + 1) ~ log(dias_cama_disponible + 1) + log(X21_value + 1) + log(X22_value + 1) +
+    #  I(0.5 * log(dias_cama_disponible + 1)^2) + I(0.5 * log(X21_value + 1)^2) + I(0.5 * log(X22_value + 1)^2) +
+    #  I(log(dias_cama_disponible + 1) * log(X21_value + 1)) + I(log(dias_cama_disponible + 1) * log(X22_value + 1)) +
+    #  I(log(X21_value + 1) * log(X22_value + 1)),
     data    = df
   )
   eff_consultas <- efficiencies(mod_consultas)
@@ -284,6 +296,10 @@ procesar_sfa <- function(df) {
   # ---- Modelo Quirofano ----
   mod_quirofano <- sfa(
     formula = log(Quirofano + 1) ~ log(dias_cama_disponible + 1) + log(X21_value + 1) + log(X22_value + 1),
+    #formula = log(Egresos.GRD + 1) ~ log(dias_cama_disponible + 1) + log(X21_value + 1) + log(X22_value + 1) +
+    #  I(0.5 * log(dias_cama_disponible + 1)^2) + I(0.5 * log(X21_value + 1)^2) + I(0.5 * log(X22_value + 1)^2) +
+    #  I(log(dias_cama_disponible + 1) * log(X21_value + 1)) + I(log(dias_cama_disponible + 1) * log(X22_value + 1)) +
+    #  I(log(X21_value + 1) * log(X22_value + 1)),
     data    = df
   )
   eff_quirofano <- efficiencies(mod_quirofano)
@@ -597,14 +613,14 @@ eficiencia_por_hospital_ano <- bind_rows(eficiencia_por_hospital_ano)
 # PASAR EFICIENCIAS A EXCEL
 # ===================================================
 
-df_ref <- nuevos_datos_procesados[["2014"]] %>%
+df_ref <- datos_procesados[["2014"]] %>%
   select(IdEstablecimiento, NombreHospital = `Nombre Establecimiento`, complejidad) %>%
   distinct() 
 
 
 df_long <- bind_rows(
-  lapply(names(nuevos_datos_procesados), function(year_name) {
-    df_year <- nuevos_datos_procesados[[year_name]]
+  lapply(names(datos_procesados), function(year_name) {
+    df_year <- datos_procesados[[year_name]]
     
     df_year %>%
       select(IdEstablecimiento, eff_global) %>%
@@ -630,7 +646,7 @@ wb <- createWorkbook()
 addWorksheet(wb, "Eficiencias")
 writeData(wb, "Eficiencias", df_wide, rowNames = FALSE)
 setColWidths(wb, sheet = "Eficiencias", cols = 1:50, widths = "auto")
-saveWorkbook(wb, "Eficiencias_SFA_outliers.xlsx", overwrite = TRUE)
+saveWorkbook(wb, "Eficiencias_Testeo.xlsx", overwrite = TRUE)
 
 ##########################################################
 
@@ -1002,10 +1018,137 @@ lapply(anios, function(a)
   ))
 
 
+# ==============================================
+#  SFA VS DEA
+# ==============================================
+
+# Cargar los datos
+df_sfa <- read_excel("Eficiencias_SFA_2014-2023.xlsx", sheet = 1)
+df_dea <- read_excel("RESULTADOS.xlsx", sheet = 1)
+
+colnames(df_sfa)[colnames(df_sfa) == "ID Establecimiento"] <- "IdEstablecimiento"
+df_sfa$IdEstablecimiento <- as.integer(df_sfa$IdEstablecimiento)
+df_dea$IdEstablecimiento <- as.integer(df_dea$IdEstablecimiento)
+
+
+
+euclid_resultados <- data.frame()
+
+for (anio in anios) {
+  col_sfa <- paste0("Eficiencia ", anio)
+  col_dea <- as.character(anio)
+  
+  df <- inner_join(
+    df_sfa %>% select(IdEstablecimiento, Complejidad, SFA = !!sym(col_sfa)),
+    df_dea %>% select(IdEstablecimiento, DEA = !!sym(col_dea)),
+    by = "IdEstablecimiento"
+  ) %>% filter(!is.na(SFA) & !is.na(DEA) & !is.na(Complejidad))
+  
+  for (nivel in unique(df$Complejidad)) {
+    sub <- df %>% filter(Complejidad == nivel)
+    sub$SFA <- as.numeric(sub$SFA)
+    sub$DEA <- as.numeric(sub$DEA)
+    
+    if (nrow(sub) > 0) {
+      dist_eucl <- sqrt(sum((sub$SFA - sub$DEA)^2))
+      euclid_resultados <- bind_rows(
+        euclid_resultados,
+        tibble(
+          Año = anio,
+          Complejidad = nivel,
+          N_Hospitales = nrow(sub),
+          Distancia_Euclidiana = dist_eucl
+        )
+      )
+    }
+  }
+}
+
+print(euclid_resultados)
+
+
+wb <- createWorkbook()
+addWorksheet(wb, "Euclidiana")
+writeData(wb, "Euclidiana", euclid_resultados, rowNames = FALSE)
+setColWidths(wb, sheet = "Euclidiana", cols = 1:50, widths = "auto")
+saveWorkbook(wb, "Distancia_Euclidiana.xlsx", overwrite = TRUE)
+
+
+
+
+euclid_resultados <- data.frame()
+
+for (anio in anios) {
+  col_sfa <- paste0("Eficiencia ", anio)
+  col_dea <- as.character(anio)
+  
+  df <- inner_join(
+    df_sfa %>% select(IdEstablecimiento, Complejidad, SFA = !!sym(col_sfa)),
+    df_dea %>% select(IdEstablecimiento, DEA = !!sym(col_dea)),
+    by = "IdEstablecimiento"
+  ) %>% filter(!is.na(SFA) & !is.na(DEA) & !is.na(Complejidad))
+  for (nivel in unique(df$Complejidad)) {
+    sub <- df %>% filter(Complejidad == nivel)
+    sub$SFA <- as.numeric(sub$SFA)
+    sub$DEA <- as.numeric(sub$DEA)
+    
+    if (nrow(sub) > 0) {
+      dist_eucl <- cor(sub$SFA, sub$DEA)
+      euclid_resultados <- bind_rows(
+        euclid_resultados,
+        tibble(
+          Año = anio,
+          Complejidad = nivel,
+          N_Hospitales = nrow(sub),
+          Distancia_Euclidiana = dist_eucl
+        )
+      )
+    }
+  }
+}
+print(euclid_resultados)
+
+
+wb <- createWorkbook()
+addWorksheet(wb, "Correlacion")
+writeData(wb, "Correlacion", corr_resultados, rowNames = FALSE)
+setColWidths(wb, sheet = "Correlacion", cols = 1:50, widths = "auto")
+saveWorkbook(wb, "Correlaciones.xlsx", overwrite = TRUE)
+
+
+
+euclid_resultados <- data.frame()
+
+for (anio in anios) {
+  col_sfa <- paste0("Eficiencia ", anio)
+  col_dea <- as.character(anio)
+  
+  df <- inner_join(
+    df_sfa %>% select(IdEstablecimiento, Complejidad, SFA = !!sym(col_sfa)),
+    df_dea %>% select(IdEstablecimiento, DEA = !!sym(col_dea)),
+    by = "IdEstablecimiento"
+  ) %>% filter(!is.na(SFA) & !is.na(DEA) & !is.na(Complejidad))
+  df$SFA <- as.numeric(df$SFA)
+  df$DEA <- as.numeric(df$DEA)
+      dist_eucl <- cor(df$SFA, df$DEA)
+      euclid_resultados <- bind_rows(
+        euclid_resultados,
+        tibble(
+          Año = anio,
+          Complejidad = nivel,
+          N_Hospitales = nrow(df),
+          Distancia_Euclidiana = dist_eucl
+        )
+      )
+    }
+print(euclid_resultados)
+
+
 
 # ==============================================
 #  AÑO 2014 (DESDE ACA HASTA ABAJO, PRUEBAS)
 # ==============================================
+
 d2014 = datos[["2014"]]
 
 # ================
@@ -1147,3 +1290,221 @@ head(d2014)
 
 # Termino de ruido estimado: v_i = e_i + u_i
 #noise_sfa <- resid_sfa + ineff_sfa
+
+df <- datos[["2014"]]
+mod_egresos <- sfa(
+  formula = f_translog <- log(Egresos.GRD + 1) ~ 
+    log(dias_cama_disponible + 1) + 
+    log(X21_value + 1) + 
+    log(X22_value + 1) +
+    I(0.5 * log(dias_cama_disponible + 1)^2) +
+    I(0.5 * log(X21_value + 1)^2) +
+    I(0.5 * log(X22_value + 1)^2) +
+    I(log(dias_cama_disponible + 1) * log(X21_value + 1)) +
+    I(log(dias_cama_disponible + 1) * log(X22_value + 1)) +
+    I(log(X21_value + 1) * log(X22_value + 1)),
+  data = df
+)
+summary(mod_egresos)
+logLik(mod_egresos)
+
+f_translog <- log(Egresos.GRD + 1) ~ 
+  log(dias_cama_disponible + 1) + 
+  log(X21_value + 1) + 
+  log(X22_value + 1) +
+  I(0.5 * log(dias_cama_disponible + 1)^2) +
+  I(0.5 * log(X21_value + 1)^2) +
+  I(0.5 * log(X22_value + 1)^2) +
+  I(log(dias_cama_disponible + 1) * log(X21_value + 1)) +
+  I(log(dias_cama_disponible + 1) * log(X22_value + 1)) +
+  I(log(X21_value + 1) * log(X22_value + 1))
+
+
+
+
+
+
+# --- Cargar los datos
+df_sfa <- read_excel("Eficiencias_SFA_2014-2023.xlsx", sheet = 1)
+df_dea <- read_excel("RESULTADOS.xlsx", sheet = 1)
+
+# --- Normalizar nombres y tipos
+colnames(df_sfa)[colnames(df_sfa) == "ID Establecimiento"] <- "IdEstablecimiento"
+df_sfa$IdEstablecimiento <- as.integer(df_sfa$IdEstablecimiento)
+df_dea$IdEstablecimiento <- as.integer(df_dea$IdEstablecimiento)
+
+# --- Define los años de interés (ajusta según tu caso)
+anios <- 2014:2023
+
+# --- DataFrames para resultados
+resultados_por_complejidad <- data.frame()
+resultados_por_anio <- data.frame()
+
+for (anio in anios) {
+  col_sfa <- paste0("Eficiencia ", anio)
+  col_dea <- as.character(anio)
+  
+  # --- Unir datos del año correspondiente
+  df <- inner_join(
+    df_sfa %>% select(IdEstablecimiento, Complejidad, SFA = !!sym(col_sfa)),
+    df_dea %>% select(IdEstablecimiento, DEA = !!sym(col_dea)),
+    by = "IdEstablecimiento"
+  ) %>% filter(!is.na(SFA) & !is.na(DEA))
+  
+  # --- Calculo por grupo de complejidad
+  for (nivel in unique(df$Complejidad)) {
+    sub <- df %>% filter(Complejidad == nivel)
+    sub$SFA <- as.numeric(sub$SFA)
+    sub$DEA <- as.numeric(sub$DEA)
+    
+    if (nrow(sub) > 0) {
+      dist_eucl <- sqrt(sum((sub$SFA - sub$DEA)^2))
+      correlacion <- cor(sub$SFA, sub$DEA)
+      
+      resultados_por_complejidad <- bind_rows(
+        resultados_por_complejidad,
+        tibble(
+          Año = anio,
+          Complejidad = nivel,
+          N_Hospitales = nrow(sub),
+          Distancia_Euclidiana = dist_eucl,
+          Correlacion = correlacion
+        )
+      )
+    }
+  }
+  
+  # --- Calculo global por año (sin separar por complejidad)
+  sub_total <- df
+  sub_total$SFA <- as.numeric(sub_total$SFA)
+  sub_total$DEA <- as.numeric(sub_total$DEA)
+  
+  if (nrow(sub_total) > 0) {
+    dist_eucl_total <- sqrt(sum((sub_total$SFA - sub_total$DEA)^2))
+    correlacion_total <- cor(sub_total$SFA, sub_total$DEA)
+    
+    resultados_por_anio <- bind_rows(
+      resultados_por_anio,
+      tibble(
+        Año = anio,
+        N_Hospitales = nrow(sub_total),
+        Distancia_Euclidiana = dist_eucl_total,
+        Correlacion = correlacion_total
+      )
+    )
+  }
+}
+
+# --- Exportar a Excel con dos hojas
+write_xlsx(
+  list(
+    "Por_Complejidad" = resultados_por_complejidad,
+    "Por_Año" = resultados_por_anio
+  ),
+  path = "Resultados_Distancia_Correlacion.xlsx"
+)
+
+
+
+
+calcula_distancia_correlacion <- function(
+    archivo_sfa = "Eficiencias_SFA_2014-2023.xlsx",
+    archivo_dea,
+    sheet_sfa = 1,
+    sheet_dea = 1,
+    anios = 2014:2023,
+    output = "Resultados_Distancia_Correlacion.xlsx"
+) {
+  # Cargar los datos
+  df_sfa <- read_excel(archivo_sfa, sheet = sheet_sfa)
+  df_dea <- read_excel(archivo_dea, sheet = sheet_dea)
+  
+  # Normalizar nombres y tipos
+  colnames(df_sfa)[colnames(df_sfa) == "ID Establecimiento"] <- "IdEstablecimiento"
+  df_sfa$IdEstablecimiento <- as.integer(df_sfa$IdEstablecimiento)
+  df_dea$IdEstablecimiento <- as.integer(df_dea$IdEstablecimiento)
+  
+  resultados_por_complejidad <- data.frame()
+  resultados_por_anio <- data.frame()
+  
+  for (anio in anios) {
+    col_sfa <- paste0("Eficiencia ", anio)
+    col_dea <- as.character(anio)
+    
+    # Unir datos del año correspondiente
+    df <- inner_join(
+      df_sfa %>% select(IdEstablecimiento, Complejidad, SFA = !!sym(col_sfa)),
+      df_dea %>% select(IdEstablecimiento, DEA = !!sym(col_dea)),
+      by = "IdEstablecimiento"
+    ) %>% filter(!is.na(SFA) & !is.na(DEA))
+    
+    # Por grupo de complejidad
+    for (nivel in unique(df$Complejidad)) {
+      sub <- df %>% filter(Complejidad == nivel)
+      sub$SFA <- as.numeric(sub$SFA)
+      sub$DEA <- as.numeric(sub$DEA)
+      
+      if (nrow(sub) > 0) {
+        dist_eucl <- sqrt(sum((sub$SFA - sub$DEA)^2))
+        correlacion <- cor(sub$SFA, sub$DEA)
+        
+        resultados_por_complejidad <- bind_rows(
+          resultados_por_complejidad,
+          tibble(
+            Año = anio,
+            Complejidad = nivel,
+            N_Hospitales = nrow(sub),
+            Distancia_Euclidiana = dist_eucl,
+            Correlacion = correlacion
+          )
+        )
+      }
+    }
+    
+    # Global por año
+    sub_total <- df
+    sub_total$SFA <- as.numeric(sub_total$SFA)
+    sub_total$DEA <- as.numeric(sub_total$DEA)
+    
+    if (nrow(sub_total) > 0) {
+      dist_eucl_total <- sqrt(sum((sub_total$SFA - sub_total$DEA)^2))
+      correlacion_total <- cor(sub_total$SFA, sub_total$DEA)
+      
+      resultados_por_anio <- bind_rows(
+        resultados_por_anio,
+        tibble(
+          Año = anio,
+          N_Hospitales = nrow(sub_total),
+          Distancia_Euclidiana = dist_eucl_total,
+          Correlacion = correlacion_total
+        )
+      )
+    }
+  }
+  
+  # Exportar a Excel
+  write_xlsx(
+    list(
+      "Por_Complejidad" = resultados_por_complejidad,
+      "Por_Año" = resultados_por_anio
+    ),
+    path = output
+  )
+  
+  # Retornar los dataframes si necesitas usarlos en R
+  invisible(list(
+    Por_Complejidad = resultados_por_complejidad,
+    Por_Año = resultados_por_anio
+  ))
+}
+
+# Solo cambia el archivo de DEA, lo demás se mantiene
+calcula_distancia_correlacion(
+  archivo_dea = "RESULTADOS_IOCRS.xlsx",
+  output = "Comparacion_IOCRS.xlsx"
+)
+
+calcula_distancia_correlacion(
+  archivo_dea = "RESULTADOS_DEA_CRS.xlsx",
+  output = "Resultados_CRS.xlsx"
+)
