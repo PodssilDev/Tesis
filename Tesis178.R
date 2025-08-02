@@ -26,6 +26,7 @@ library(corrplot)
 library(reshape2)
 library(ggplot2)
 library(plotly)
+library(tidyverse)
 library(sf)
 library(tibble)
 #library(deaR)
@@ -264,11 +265,11 @@ df <- datos[["2014"]]
 procesar_sfa <- function(df) {
   # ---- Modelo Egresos ----
   mod_egresos <- sfa(
-    formula = log(Egresos.GRD + 1) ~ log(dias_cama_disponible + 1) + log(X21_value + 1) + log(X22_value + 1),
-    #formula = log(Egresos.GRD + 1) ~ log(dias_cama_disponible + 1) + log(X21_value + 1) + log(X22_value + 1) +
-    #  I(0.5 * log(dias_cama_disponible + 1)^2) + I(0.5 * log(X21_value + 1)^2) + I(0.5 * log(X22_value + 1)^2) +
-    #  I(log(dias_cama_disponible + 1) * log(X21_value + 1)) + I(log(dias_cama_disponible + 1) * log(X22_value + 1)) +
-    #  I(log(X21_value + 1) * log(X22_value + 1)),
+    #formula = log(Egresos.GRD + 1) ~ log(dias_cama_disponible + 1) + log(X21_value + 1) + log(X22_value + 1),
+    formula = log(Egresos.GRD + 1) ~ log(dias_cama_disponible + 1) + log(X21_value + 1) + log(X22_value + 1) +
+      I(0.5 * log(dias_cama_disponible + 1)^2) + I(0.5 * log(X21_value + 1)^2) + I(0.5 * log(X22_value + 1)^2) +
+      I(log(dias_cama_disponible + 1) * log(X21_value + 1)) + I(log(dias_cama_disponible + 1) * log(X22_value + 1)) +
+      I(log(X21_value + 1) * log(X22_value + 1)),
     data    = df
   )
   eff_egresos <- efficiencies(mod_egresos)
@@ -284,22 +285,22 @@ procesar_sfa <- function(df) {
   
   # ---- Modelo Consultas ----
   mod_consultas <- sfa(
-    formula = log(Consultas + 1) ~ log(dias_cama_disponible + 1) + log(X21_value + 1) + log(X22_value + 1),
-    #formula = log(Consultas + 1) ~ log(dias_cama_disponible + 1) + log(X21_value + 1) + log(X22_value + 1) +
-    #  I(0.5 * log(dias_cama_disponible + 1)^2) + I(0.5 * log(X21_value + 1)^2) + I(0.5 * log(X22_value + 1)^2) +
-    #  I(log(dias_cama_disponible + 1) * log(X21_value + 1)) + I(log(dias_cama_disponible + 1) * log(X22_value + 1)) +
-    #  I(log(X21_value + 1) * log(X22_value + 1)),
+    #formula = log(Consultas + 1) ~ log(dias_cama_disponible + 1) + log(X21_value + 1) + log(X22_value + 1),
+    formula = log(Consultas + 1) ~ log(dias_cama_disponible + 1) + log(X21_value + 1) + log(X22_value + 1) +
+      I(0.5 * log(dias_cama_disponible + 1)^2) + I(0.5 * log(X21_value + 1)^2) + I(0.5 * log(X22_value + 1)^2) +
+      I(log(dias_cama_disponible + 1) * log(X21_value + 1)) + I(log(dias_cama_disponible + 1) * log(X22_value + 1)) +
+      I(log(X21_value + 1) * log(X22_value + 1)),
     data    = df
   )
   eff_consultas <- efficiencies(mod_consultas)
   
   # ---- Modelo Quirofano ----
   mod_quirofano <- sfa(
-    formula = log(Quirofano + 1) ~ log(dias_cama_disponible + 1) + log(X21_value + 1) + log(X22_value + 1),
-    #formula = log(Egresos.GRD + 1) ~ log(dias_cama_disponible + 1) + log(X21_value + 1) + log(X22_value + 1) +
-    #  I(0.5 * log(dias_cama_disponible + 1)^2) + I(0.5 * log(X21_value + 1)^2) + I(0.5 * log(X22_value + 1)^2) +
-    #  I(log(dias_cama_disponible + 1) * log(X21_value + 1)) + I(log(dias_cama_disponible + 1) * log(X22_value + 1)) +
-    #  I(log(X21_value + 1) * log(X22_value + 1)),
+    #formula = log(Quirofano + 1) ~ log(dias_cama_disponible + 1) + log(X21_value + 1) + log(X22_value + 1),
+    formula = log(Egresos.GRD + 1) ~ log(dias_cama_disponible + 1) + log(X21_value + 1) + log(X22_value + 1) +
+      I(0.5 * log(dias_cama_disponible + 1)^2) + I(0.5 * log(X21_value + 1)^2) + I(0.5 * log(X22_value + 1)^2) +
+      I(log(dias_cama_disponible + 1) * log(X21_value + 1)) + I(log(dias_cama_disponible + 1) * log(X22_value + 1)) +
+      I(log(X21_value + 1) * log(X22_value + 1)),
     data    = df
   )
   eff_quirofano <- efficiencies(mod_quirofano)
@@ -327,6 +328,74 @@ datos_procesados <- lapply(datos, procesar_sfa)
 # ===================================================
 # VERIFICAR NORMALIDAD DE EFICIENCIAS
 # ===================================================
+
+library(tidyverse)
+library(patchwork)   # instalar con install.packages("patchwork")
+
+analizar_normalidad_eff_con_QQ <- function(datos_lista, ncol = 2, guardar = TRUE,
+                                           archivo = "histogramas_eficiencia.png",
+                                           ancho = 18, alto = 10, dpi = 300) {
+  
+  grafs_hist <- list()   # aquí se irán guardando los histogramas
+  resultados <- list()   # p-values
+  
+  for (anio in names(datos_lista)) {
+    
+    df <- datos_lista[[anio]]
+    
+    # Histograma
+    p_hist <- ggplot(df, aes(x = eff_global)) +
+      geom_histogram(bins = 30, color = "black", fill = "lightblue") +
+      labs(title = paste("Histograma eficiencia –", anio),
+           x = "Eficiencia", y = "Frecuencia") +
+      theme_minimal(base_size = 12)
+    
+    grafs_hist[[anio]] <- p_hist   # guardar
+    
+    # Shapiro–Wilk si procede
+    if (dplyr::between(nrow(df), 3, 5000)) {
+      pvalor <- shapiro.test(df$eff_global)$p.value
+    } else {
+      pvalor <- NA
+    }
+    resultados[[anio]] <- pvalor
+  }
+  
+  # --- Juntar todos los histogramas ---
+  plot_final <- wrap_plots(grafs_hist, ncol = ncol) +
+    plot_annotation(title = "Distribución de eficiencia por año",
+                    theme = theme(plot.title = element_text(size = 18, face = "bold")))
+  
+  # Guardar si se pidió
+  if (guardar) {
+    ggsave(archivo, plot_final, width = ancho, height = alto, dpi = dpi)
+  }
+  
+  # Devolver p-values y el plot por si se quiere mostrar en consola
+  lista_salida <- list(
+    tabla_pvalues = tibble(
+      Año = names(resultados),
+      p_value_Shapiro = unlist(resultados)
+    ),
+    grafico = plot_final
+  )
+  return(lista_salida)
+}
+
+res <- analizar_normalidad_eff_con_QQ(
+  datos_lista     = datos_procesados,
+  ncol            = 3,                 # número de columnas en la cuadrícula
+  archivo         = "histos_normalidad.png",
+  ancho           = 20,                # aumenta para más separación
+  alto            = 12,
+  dpi             = 300
+)
+
+# Tabla de p-values
+res$tabla_pvalues
+
+# Ver el gráfico en la sesión interactiva
+res$grafico
 
 
 analizar_normalidad_eff_con_QQ <- function(datos_lista) {
@@ -646,7 +715,7 @@ wb <- createWorkbook()
 addWorksheet(wb, "Eficiencias")
 writeData(wb, "Eficiencias", df_wide, rowNames = FALSE)
 setColWidths(wb, sheet = "Eficiencias", cols = 1:50, widths = "auto")
-saveWorkbook(wb, "Eficiencias_Testeo.xlsx", overwrite = TRUE)
+saveWorkbook(wb, "Eficiencias_OtraFuncion.xlsx", overwrite = TRUE)
 
 ##########################################################
 
@@ -767,7 +836,7 @@ analize_rf <- function(year, resultados_in, n_top, tipo){
 }
 
 # Aplicar Random Forest para cada año
-random_forest <- lapply(anios, function(anio) {analize_rf(anio, resultados_in = datos_min, 500, "eff_global_new")})
+random_forest <- lapply(anios, function(anio) {analize_rf(anio, resultados_in = datos_min, 500, "eff_global")})
 # Asignar nombres a la lista de modelos
 names(random_forest) <- paste0(anios)
 
@@ -1408,12 +1477,12 @@ write_xlsx(
 
 
 calcula_distancia_correlacion <- function(
-    archivo_sfa = "Eficiencias_SFA_2014-2023.xlsx",
+    archivo_sfa = "Eficiencias_OtraFuncion.xlsx",
     archivo_dea,
     sheet_sfa = 1,
     sheet_dea = 1,
     anios = 2014:2023,
-    output = "Resultados_Distancia_Correlacion.xlsx"
+    output = "Resultados_HP1.xlsx"
 ) {
   # Cargar los datos
   df_sfa <- read_excel(archivo_sfa, sheet = sheet_sfa)
@@ -1500,11 +1569,313 @@ calcula_distancia_correlacion <- function(
 
 # Solo cambia el archivo de DEA, lo demás se mantiene
 calcula_distancia_correlacion(
-  archivo_dea = "RESULTADOS_IOCRS.xlsx",
-  output = "Comparacion_IOCRS.xlsx"
+  archivo_dea = "RESULTADOS_OOVRS.xlsx",
+  output = "Comparacion_HP1.xlsx"
 )
 
 calcula_distancia_correlacion(
   archivo_dea = "RESULTADOS_DEA_CRS.xlsx",
   output = "Resultados_CRS.xlsx"
 )
+
+
+
+
+library(tidyverse)
+
+# Suponiendo que tu lista se llama datos_procesados y tiene nombres de cada año ("2014", ..., "2023")
+datos_largos <- imap_dfr(
+  datos_procesados,
+  ~ .x %>% mutate(anio = .y)
+)
+
+# Si anio quedó como carácter, conviértelo a factor ordenado:
+datos_largos <- datos_largos %>%
+  mutate(anio = factor(anio, levels = names(datos_procesados)))
+
+
+library(ggplot2)
+
+library(ggplot2)
+library(tidyverse)
+
+# Supongamos que tu dataframe largo es datos_largos
+ggplot(datos_largos, aes(x = anio, y = eff_global)) +
+  geom_violin(fill = "#aee8a3", alpha = 0.3, color = "#58b858", width = 1) +
+  stat_summary(fun = mean, geom = "point", shape = 21, size = 3, fill = "black") +
+  stat_summary(fun = mean, geom = "line", aes(group=1), linetype = "dashed", color = "black", size = 1) +
+  labs(
+    x = "Año",
+    y = "Eficiencia técnica",
+  ) +
+  theme_minimal(base_size = 18) +      # Agranda los textos y separa
+  theme(
+    axis.text.x = element_text(angle = 30, vjust = 0.7, line = 16),
+    axis.text.y = element_text(size = 16),
+    plot.title = element_text(size = 22, face = "bold")
+  )
+
+ggsave("violinplot_eficiencia.png", width = 15, height = 5, dpi = 300)
+
+
+
+
+
+
+library(dplyr)
+
+# 1. Quedarse sólo con las columnas clave -----------------------------
+datos_reduc <- datos_largos %>%                    # o datos_completos, según tu objeto
+  select(anio, IdEstablecimiento, eff_global, complejidad)
+
+#datos_reduc <- datos_reduc %>% filter(complejidad == "Mediana")
+
+# 2. Mantener SOLO los hospitales que tienen datos para TODOS los años --------
+años_totales <- n_distinct(datos_reduc$anio)
+
+datos_balanceados <- datos_reduc %>% 
+  group_by(IdEstablecimiento) %>% 
+  filter(n() == años_totales) %>%   # deja los bloques completos
+  ungroup() %>% 
+  mutate(
+    anio              = factor(anio),              # convertir a factor
+    IdEstablecimiento = factor(IdEstablecimiento)
+  )
+
+library(tidyverse)
+
+# --- 1.  MATRIZ → FORMATO LARGO ----------------------------------------------
+long_eff <- datos_balanceados %>%
+  as.data.frame() %>%                     # cada fila = hospital
+  rownames_to_column("IdEstablecimiento") %>%
+  pivot_longer(
+    cols      = -IdEstablecimiento,
+    names_to  = "anio",
+    values_to = "eff_global"
+  )
+
+# aseguramos que los factores queden ordenados cronológicamente
+long_eff <- long_eff %>% 
+  mutate(anio = factor(anio, levels = sort(unique(anio))))
+
+library(rstatix)
+
+cat("\n==== POST-HOC WILCOXON PAREADO (two-sided) ====\n")
+posthoc_wilcoxon <- datos_balanceados %>%
+  pairwise_wilcox_test(eff_global ~ anio, paired = TRUE, p.adjust.method = "holm")
+print(posthoc_wilcoxon, n = 50)
+
+# --- 3. Post-hoc Wilcoxon pareado con alternativa "less"
+cat("\n==== POST-HOC WILCOXON PAREADO (alternative = 'less') ====\n")
+posthoc_wilcoxon_less <- datos_balanceados %>%
+  pairwise_wilcox_test(eff_global ~ anio, paired = TRUE, p.adjust.method = "holm", alternative = "less")
+print(posthoc_wilcoxon_less, n = 50)
+
+# --- 2.  PRUEBA DE WILCOXON PAREADA (alternativa: menor, ajuste Holm) ---------
+wilc_res <- pairwise.wilcox.test(
+  x                 = long_eff$eff_global,
+  g                 = long_eff$anio,
+  paired            = TRUE,
+  alternative       = "less",
+  p.adjust.method   = "holm"
+)
+
+# --- 3.  MATRIZ DE P-VALUES FORMATEADA ----------------------------------------
+p_mat <- wilc_res$p.value          # matriz triangular superior
+p_mat[is.na(p_mat)] <- 1           # opcional: NA como 1 para mostrar '-'
+
+# función de asteriscos de significancia
+sig_stars <- function(p) cut(
+  p,
+  breaks = c(-Inf, .0001, .001, .01, .05, 1),
+  labels = c("****", "***", "**", "*", "")
+)
+
+p_fmt <- ifelse(
+  p_mat < 1,
+  paste0(formatC(p_mat, digits = 3, format = "f"), " ", sig_stars(p_mat)),
+  "-"
+)
+
+print(p_fmt)      # tabla lista para inspeccionar o exportar
+
+
+
+
+# 1. Prueba de Friedman (eficiencia ~ año, bloque = hospital)
+cat("==== PRUEBA DE FRIEDMAN ====\n")
+friedman_result <- friedman.test(eff_global ~ IdEstablecimiento | anio, data = datos_largos)
+print(friedman_result)
+
+# 2. Wilcoxon pareado año-a-año  (alternativa: menor, ajuste Holm)
+wilc_all <- pairwise.wilcox.test(
+  x       = eficiencia_long$eff_global,
+  g       = eficiencia_long$anio,
+  p.adjust.method = "holm",
+  paired  = TRUE,
+  alternative = "less"
+)
+
+# 3. Convertir a matriz triangular superior y formatear
+p_mat <- wilc_all$p.value           # obtiene la matriz
+p_mat[is.na(p_mat)] <- 1            # opcional: rellenar NA con 1 para mostrar '-'
+stars <- function(p) {              # asigna asteriscos
+  cut(p,
+      breaks = c(-Inf, .0001, .001, .01, .05, 1),
+      labels = c("****", "***", "**", "*", ""))
+}
+
+p_fmt <- formatC(p_mat, digits = 3, format = "f")
+p_fmt <- ifelse(p_mat < .05, paste(p_fmt, stars(p_mat)), p_fmt)
+p_fmt[p_mat == 1] <- "-"            # muestra guión donde p = 1
+
+# 4. Crear data frame para imprimir o exportar
+tabla_final <- as.data.frame(p_fmt)
+tabla_final <- tibble::rownames_to_column(tabla_final, "Año")
+print(tabla_final)
+
+# 5. (Optativo) Tabla en LaTeX con kableExtra
+# install.packages("kableExtra")
+library(kableExtra)
+
+kbl(tabla_final, booktabs = TRUE,
+    caption = "Prueba de Wilcoxon pareada con ajuste Holm (alternativa: menor)") |>
+  kable_styling(latex_options = c("striped", "hold_position"))
+
+
+
+
+df_incmse <- resultados_importancia[["df_incmse_10"]]
+df_incmse_all <- df_incmse
+df_incmse_pre <- df_incmse[,c(1:6)]
+df_incmse_post <- df_incmse[,c(1,7:10)]
+
+
+df_long_all_comp <- df_incmse_all %>% pivot_longer(-Variable, names_to = "Año", values_to = "Valor")
+df_long_all_comp <- na.omit(df_long_all_comp)
+
+# Calcular la mediana de los valores en el periodo "pre" (columnas 2 a 7)
+df_median_pre <- df_incmse_pre %>%
+  mutate(Mediana_Pre = apply(df_incmse_pre[, -1], 1, median, na.rm = TRUE)) %>%
+  select(Variable, Mediana_Pre)  # Seleccionar solo Variable y la mediana
+
+# Calcular la mediana de los valores en el periodo "post" (columnas 8 a 11)
+df_median_post <- df_incmse_post %>%
+  mutate(Mediana_Post = apply(df_incmse_post[, -1], 1, median, na.rm = TRUE)) %>%
+  select(Variable, Mediana_Post)  # Seleccionar solo Variable y la mediana
+
+
+# Unir ambos dataframes en un único dataframe con las medianas
+df_median <- left_join(df_median_pre, df_median_post, by = "Variable")
+df_median <- calcular_estadisticas(df_median) %>% filter(Frecuencia > 1) 
+df_median <- df_median[,-c(3,4)]
+
+df_incmse_all_est <- calcular_estadisticas(df_incmse_all) %>% filter(Frecuencia > 1)
+df_incmse_all <- df_incmse_all_est[,c(1:11)]
+
+df_incmse_pre_est <- calcular_estadisticas(df_incmse_pre) %>% filter(Frecuencia > 1) 
+df_incmse_pre <- df_incmse_pre_est[,c(1:7)]
+
+df_incmse_post_est <- calcular_estadisticas(df_incmse_post) %>% filter(Frecuencia > 1)
+df_incmse_post <- df_incmse_post_est[,c(1:5)]
+
+
+
+
+# Convertir a formato largo (tidy)
+df_long_all <- df_incmse_all %>% pivot_longer(-Variable, names_to = "Año", values_to = "Valor")
+df_long_all <- na.omit(df_long_all)
+
+df_long_pre_post <- df_median %>% pivot_longer(-Variable, names_to = "Periodo", values_to = "Valor")
+df_long_pre_post <- na.omit(df_long_pre_post)
+
+
+# Aplicar Kruskal-Wallis para cada fila (variable)
+kruskal_results_all <- df_long_all %>%
+  group_by(Variable) %>%
+  summarise(
+    p_value = kruskal.test(Valor ~ Año)$p.value
+  )
+
+
+# Aplicar Kruskal-Wallis para cada fila (variable)
+kruskal_results_pre_post <- df_long_pre_post %>%
+  group_by(Variable) %>%
+  summarise(
+    p_value = kruskal.test(Valor ~ Periodo)$p.value
+  )
+
+
+
+print(n=100,kruskal_results_all)
+print(n=100,kruskal_results_pre_post)
+
+
+
+library(rstatix)    # friedman.test() y pairwise_wilcox_test()
+
+# ──────────────────────────────────────────────────────────────
+# 1. Pasar la lista a un único data frame largo
+#    Quedan las columnas: IdEstablecimiento, Año, complejidad, Valor (=eff_global)
+# ──────────────────────────────────────────────────────────────
+df <- imap_dfr(
+  datos_procesados,
+  ~ .x %>%                           # .x = tibble del año
+    mutate(Año = .y) %>%             # .y = nombre de la lista (2014, 2015,…)
+    select(IdEstablecimiento, Año, complejidad, Valor = eff_global)
+)
+
+# Aseguramos que Año sea factor ordenado
+df <- df %>%
+  mutate(
+    Año         = factor(Año, levels = sort(unique(Año))),
+    complejidad = factor(complejidad, levels = c("Alta", "Mediana", "Baja"))
+  )
+
+# ──────────────────────────────────────────────────────────────
+# 2. Función auxiliar que corre Friedman + Wilcoxon para un nivel
+# ──────────────────────────────────────────────────────────────
+analisis_por_nivel <- function(datos, nivel){
+  
+  # --- 1.  MATRIZ → FORMATO LARGO ----------------------------------------------
+  long_eff <- datos %>%
+    as.data.frame() %>%                     # cada fila = hospital
+    rownames_to_column("IdEstablecimiento") %>%
+    pivot_longer(
+      cols      = IdEstablecimiento,
+      names_to  = "Año",
+      values_to = "Valor"
+    )
+  
+  # aseguramos que los factores queden ordenados cronológicamente
+  long_eff <- long_eff %>% 
+    mutate(Año = factor(Año, levels = sort(unique(Año))))
+  
+  datos_nivel <- long_eff %>% filter(complejidad == nivel)
+  
+  
+  cat("\n==== POST-HOC WILCOXON PAREADO (two-sided) ====\n")
+  posthoc_wilcoxon <- long_eff %>%
+    pairwise_wilcox_test(Valor ~ Año, paired = TRUE, p.adjust.method = "holm")
+  print(posthoc_wilcoxon, n = 50)
+  
+  cat("\n==============================\n")
+  cat(">>> COMPLEJIDAD:", nivel, "\n")
+  
+  
+  
+
+  invisible(list(wilcoxon = wilcoxon_res))
+}
+
+# ──────────────────────────────────────────────────────────────
+# 3. Ejecutar para Alta, Mediana y Baja
+# ──────────────────────────────────────────────────────────────
+resultados <- map(
+  levels(df$complejidad),
+  ~ analisis_por_nivel(df, .x)
+)
+names(resultados) <- levels(df$complejidad)
+
+# Ahora `resultados$Alta`, `resultados$Mediana`, `resultados$Baja`
+# contienen sendas listas con los objetos de Friedman y Wilcoxon.
