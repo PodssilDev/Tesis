@@ -1026,6 +1026,7 @@ lapply(anios, function(anio) {
 # polígonos de Chile continental
 world <- ne_countries(scale = "medium", returnclass = "sf")
 chile <- world[world$name == "Chile", ]
+comunas_sf <- chilemapas::mapa_comunas
 
 # -------------------------------------------------------------------
 #   Función: mapa de eficiencia – solo Chile continental

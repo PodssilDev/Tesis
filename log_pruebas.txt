@@ -1,0 +1,28 @@
+[2025-08-05 00:46:58] Prueba: Verificar p-valores de Friedman y Wilcoxon
+[2025-08-05 00:47:43] ✔ Mapa de eficiencia generado correctamente.
+[2025-08-05 00:49:05] ✔ Comparación SFA vs DEA generada correctamente.
+[2025-08-05 00:54:29] ✔ Modelo Random Forest válido para el año 2014
+[2025-08-05 00:54:29] ✔ Importancia de variables calculada correctamente para año 2014
+[2025-08-05 00:54:29] ✔ Modelo Random Forest válido para el año 2015
+[2025-08-05 00:54:29] ✔ Importancia de variables calculada correctamente para año 2015
+[2025-08-05 00:54:29] ✔ Modelo Random Forest válido para el año 2016
+[2025-08-05 00:54:29] ✔ Importancia de variables calculada correctamente para año 2016
+[2025-08-05 00:54:29] ✔ Modelo Random Forest válido para el año 2017
+[2025-08-05 00:54:29] ✔ Importancia de variables calculada correctamente para año 2017
+[2025-08-05 00:54:29] ✔ Modelo Random Forest válido para el año 2018
+[2025-08-05 00:54:29] ✔ Importancia de variables calculada correctamente para año 2018
+[2025-08-05 00:54:29] ✔ Modelo Random Forest válido para el año 2019
+[2025-08-05 00:54:29] ✔ Importancia de variables calculada correctamente para año 2019
+[2025-08-05 00:54:29] ✔ Modelo Random Forest válido para el año 2020
+[2025-08-05 00:54:29] ✔ Importancia de variables calculada correctamente para año 2020
+[2025-08-05 00:54:29] ✔ Modelo Random Forest válido para el año 2021
+[2025-08-05 00:54:29] ✔ Importancia de variables calculada correctamente para año 2021
+[2025-08-05 00:54:29] ✔ Modelo Random Forest válido para el año 2022
+[2025-08-05 00:54:29] ✔ Importancia de variables calculada correctamente para año 2022
+[2025-08-05 00:54:29] ✔ Modelo Random Forest válido para el año 2023
+[2025-08-05 00:54:29] ✔ Importancia de variables calculada correctamente para año 2023
+[2025-08-05 00:54:29] === Pruebas de determinantes completadas ===
+[2025-08-05 00:57:45] ✔ Columnas clave presentes.
+[2025-08-05 00:57:45] ✔ Todos los años presentes.
+[2025-08-05 00:57:45] ✔ No hay duplicados de IdEstablecimiento.
+[2025-08-05 00:57:45] === Pruebas de datos completadas ===
