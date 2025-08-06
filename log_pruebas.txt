@@ -26,3 +26,126 @@
 [2025-08-05 00:57:45] ✔ Todos los años presentes.
 [2025-08-05 00:57:45] ✔ No hay duplicados de IdEstablecimiento.
 [2025-08-05 00:57:45] === Pruebas de datos completadas ===
+[2025-08-05 17:12:30] ✔ Columnas clave presentes.
+[2025-08-05 17:12:30] ✔ Todos los años presentes.
+[2025-08-05 17:12:30] ✔ No hay duplicados de IdEstablecimiento.
+[2025-08-05 17:12:30] === Pruebas de datos completadas ===
+[2025-08-05 17:13:13] ✔ Todas las eficiencias están entre 0 y 1.
+[2025-08-05 17:13:13] === Pruebas SFA completadas ===
+[2025-08-05 17:13:55] Prueba: Verificar métricas calculadas (implementar si es necesario)
+[2025-08-05 17:14:08] Prueba: Verificar p-valores de Friedman y Wilcoxon
+[2025-08-05 17:14:25] ✔ Mapa de eficiencia generado correctamente.
+[2025-08-05 17:16:14] ✔ Modelo Random Forest válido para el año 2014
+[2025-08-05 17:16:14] ✔ Importancia de variables calculada correctamente para año 2014
+[2025-08-05 17:16:14] ✔ Modelo Random Forest válido para el año 2015
+[2025-08-05 17:16:14] ✔ Importancia de variables calculada correctamente para año 2015
+[2025-08-05 17:16:14] ✔ Modelo Random Forest válido para el año 2016
+[2025-08-05 17:16:14] ✔ Importancia de variables calculada correctamente para año 2016
+[2025-08-05 17:16:14] ✔ Modelo Random Forest válido para el año 2017
+[2025-08-05 17:16:14] ✔ Importancia de variables calculada correctamente para año 2017
+[2025-08-05 17:16:14] ✔ Modelo Random Forest válido para el año 2018
+[2025-08-05 17:16:14] ✔ Importancia de variables calculada correctamente para año 2018
+[2025-08-05 17:16:14] ✔ Modelo Random Forest válido para el año 2019
+[2025-08-05 17:16:14] ✔ Importancia de variables calculada correctamente para año 2019
+[2025-08-05 17:16:14] ✔ Modelo Random Forest válido para el año 2020
+[2025-08-05 17:16:14] ✔ Importancia de variables calculada correctamente para año 2020
+[2025-08-05 17:16:14] ✔ Modelo Random Forest válido para el año 2021
+[2025-08-05 17:16:14] ✔ Importancia de variables calculada correctamente para año 2021
+[2025-08-05 17:16:14] ✔ Modelo Random Forest válido para el año 2022
+[2025-08-05 17:16:14] ✔ Importancia de variables calculada correctamente para año 2022
+[2025-08-05 17:16:14] ✔ Modelo Random Forest válido para el año 2023
+[2025-08-05 17:16:14] ✔ Importancia de variables calculada correctamente para año 2023
+[2025-08-05 17:16:14] === Pruebas de determinantes completadas ===
+[2025-08-05 17:16:25] ✔ Comparación SFA vs DEA generada correctamente.
+[2025-08-05 17:20:04] ✔ Todas las eficiencias están entre 0 y 1.
+[2025-08-05 17:20:04] === Pruebas SFA completadas ===
+[2025-08-05 17:26:13] Prueba: Verificar métricas calculadas (implementar si es necesario)
+[2025-08-05 17:35:14] ✔ Columnas clave presentes.
+[2025-08-05 17:35:14] ✔ Todos los años presentes.
+[2025-08-05 17:35:14] ✔ No hay duplicados de IdEstablecimiento.
+[2025-08-05 17:35:14] === Pruebas de datos completadas ===
+[2025-08-05 17:39:48] ✔ Prueba métricas: todas las verificaciones superadas correctamente.
+[2025-08-05 17:40:15] Prueba estadística: ERROR - No se encontraron resultados de Wilcoxon en 'resultados_pruebas'
+[2025-08-05 17:42:41] Prueba estadística: ERROR - No se encontraron resultados de Wilcoxon en 'resultados_pruebas'
+[2025-08-05 17:54:06] ✔ Comparación SFA vs DEA generada correctamente.
+[2025-08-05 17:56:59] ✔ Comparación SFA vs DEA generada correctamente.
+[2025-08-05 18:05:20] ✔ Comparación SFA vs DEA generada correctamente.
+[2025-08-05 18:06:25] ✔ Comparación SFA vs DEA generada correctamente.
+[2025-08-05 18:13:11] ✔ Columnas clave presentes.
+[2025-08-05 18:13:11] ✔ Todos los años presentes.
+[2025-08-05 18:13:11] ✔ No hay duplicados de IdEstablecimiento.
+[2025-08-05 18:13:11] === Pruebas de datos completadas ===
+[2025-08-05 18:13:57] ✔ Columnas clave presentes.
+[2025-08-05 18:13:57] ✔ Todos los años presentes.
+[2025-08-05 18:13:57] ✔ No hay duplicados de IdEstablecimiento.
+[2025-08-05 18:13:57] === Pruebas de datos completadas ===
+[2025-08-05 18:58:55] ✔ Columnas clave presentes.
+[2025-08-05 18:58:55] ✔ Todos los años presentes.
+[2025-08-05 18:58:55] ✔ No hay duplicados de IdEstablecimiento.
+[2025-08-05 18:58:55] === Pruebas de datos completadas ===
+[2025-08-05 19:02:03] ✔ Todas las eficiencias están entre 0 y 1.
+[2025-08-05 19:02:03] === Pruebas SFA completadas ===
+[2025-08-05 19:05:06] ✔ Mapa de eficiencia generado correctamente.
+[2025-08-05 19:14:28] ✔ Modelo Random Forest válido para el año 2014
+[2025-08-05 19:14:28] ✔ Importancia de variables calculada correctamente para año 2014
+[2025-08-05 19:14:28] ✔ Modelo Random Forest válido para el año 2015
+[2025-08-05 19:14:28] ✔ Importancia de variables calculada correctamente para año 2015
+[2025-08-05 19:14:28] ✔ Modelo Random Forest válido para el año 2016
+[2025-08-05 19:14:28] ✔ Importancia de variables calculada correctamente para año 2016
+[2025-08-05 19:14:28] ✔ Modelo Random Forest válido para el año 2017
+[2025-08-05 19:14:28] ✔ Importancia de variables calculada correctamente para año 2017
+[2025-08-05 19:14:28] ✔ Modelo Random Forest válido para el año 2018
+[2025-08-05 19:14:28] ✔ Importancia de variables calculada correctamente para año 2018
+[2025-08-05 19:14:28] ✔ Modelo Random Forest válido para el año 2019
+[2025-08-05 19:14:28] ✔ Importancia de variables calculada correctamente para año 2019
+[2025-08-05 19:14:28] ✔ Modelo Random Forest válido para el año 2020
+[2025-08-05 19:14:28] ✔ Importancia de variables calculada correctamente para año 2020
+[2025-08-05 19:14:28] ✔ Modelo Random Forest válido para el año 2021
+[2025-08-05 19:14:28] ✔ Importancia de variables calculada correctamente para año 2021
+[2025-08-05 19:14:28] ✔ Modelo Random Forest válido para el año 2022
+[2025-08-05 19:14:28] ✔ Importancia de variables calculada correctamente para año 2022
+[2025-08-05 19:14:28] ✔ Modelo Random Forest válido para el año 2023
+[2025-08-05 19:14:28] ✔ Importancia de variables calculada correctamente para año 2023
+[2025-08-05 19:14:28] === Pruebas de determinantes completadas ===
+[2025-08-05 19:46:19] ✔ Comparación SFA vs DEA generada correctamente.
+[2025-08-05 19:50:53] ✔ Comparación SFA vs DEA generada correctamente.
+[2025-08-05 19:52:16] ✔ Comparación SFA vs DEA generada correctamente.
+[2025-08-05 19:53:41] ✔ Comparación SFA vs DEA generada correctamente.
+[2025-08-05 19:54:11] ✔ Comparación SFA vs DEA generada correctamente.
+[2025-08-05 19:54:42] ✔ Comparación SFA vs DEA generada correctamente.
+[2025-08-05 19:55:33] ✔ Comparación SFA vs DEA generada correctamente.
+[2025-08-05 19:57:41] ✔ Comparación SFA vs DEA generada correctamente.
+[2025-08-05 19:58:30] ✔ Comparación SFA vs DEA generada correctamente.
+[2025-08-05 19:59:22] ✔ Comparación SFA vs DEA generada correctamente.
+[2025-08-05 19:59:53] ✔ Comparación SFA vs DEA generada correctamente.
+[2025-08-05 20:07:38] ✔ Columnas clave presentes.
+[2025-08-05 20:07:38] ✔ Todos los años presentes.
+[2025-08-05 20:07:38] ✔ No hay duplicados de IdEstablecimiento.
+[2025-08-05 20:07:38] === Pruebas de datos completadas ===
+[2025-08-05 20:08:21] ✔ Todas las eficiencias están entre 0 y 1.
+[2025-08-05 20:08:21] === Pruebas SFA completadas ===
+[2025-08-05 20:08:34] ✔ Prueba métricas: todas las verificaciones superadas correctamente.
+[2025-08-05 20:09:05] ❌ No se generó el mapa esperado.
+[2025-08-05 20:11:06] ✔ Modelo Random Forest válido para el año 2014
+[2025-08-05 20:11:06] ✔ Importancia de variables calculada correctamente para año 2014
+[2025-08-05 20:11:06] ✔ Modelo Random Forest válido para el año 2015
+[2025-08-05 20:11:06] ✔ Importancia de variables calculada correctamente para año 2015
+[2025-08-05 20:11:06] ✔ Modelo Random Forest válido para el año 2016
+[2025-08-05 20:11:06] ✔ Importancia de variables calculada correctamente para año 2016
+[2025-08-05 20:11:06] ✔ Modelo Random Forest válido para el año 2017
+[2025-08-05 20:11:06] ✔ Importancia de variables calculada correctamente para año 2017
+[2025-08-05 20:11:06] ✔ Modelo Random Forest válido para el año 2018
+[2025-08-05 20:11:06] ✔ Importancia de variables calculada correctamente para año 2018
+[2025-08-05 20:11:06] ✔ Modelo Random Forest válido para el año 2019
+[2025-08-05 20:11:06] ✔ Importancia de variables calculada correctamente para año 2019
+[2025-08-05 20:11:06] ✔ Modelo Random Forest válido para el año 2020
+[2025-08-05 20:11:06] ✔ Importancia de variables calculada correctamente para año 2020
+[2025-08-05 20:11:06] ✔ Modelo Random Forest válido para el año 2021
+[2025-08-05 20:11:06] ✔ Importancia de variables calculada correctamente para año 2021
+[2025-08-05 20:11:06] ✔ Modelo Random Forest válido para el año 2022
+[2025-08-05 20:11:06] ✔ Importancia de variables calculada correctamente para año 2022
+[2025-08-05 20:11:06] ✔ Modelo Random Forest válido para el año 2023
+[2025-08-05 20:11:06] ✔ Importancia de variables calculada correctamente para año 2023
+[2025-08-05 20:11:06] === Pruebas de determinantes completadas ===
+[2025-08-05 20:12:35] ✔ Comparación SFA vs DEA generada correctamente.
+[2025-08-05 20:20:24] ✔ Mapa de eficiencia generado correctamente.

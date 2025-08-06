@@ -8,7 +8,7 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
-load("testing.RDATA")   # carga variables guardadas (datos_procesados, etc.)
+load("Resultados/Informes/informe.RDATA")   # carga variables guardadas (datos_procesados, etc.)
 library(dplyr)
 library(ggplot2)
 library(knitr)
@@ -25,11 +25,11 @@ if (exists("tabla_resultados")) {
 ```
 
 ```{r violin-img, echo=FALSE, out.width="100%"}
-knitr::include_graphics("violinplot_eficiencia.png")
+knitr::include_graphics("Resultados/Eficiencia/violinplot_eficiencia.png")
 ```
 
 ```{r violin-complejidad-img, echo=FALSE, out.width="100%"}
-knitr::include_graphics("violinplot_eficiencia_complejidad.png")
+knitr::include_graphics("Resultados/Eficiencia/violinplot_eficiencia_complejidad.png")
 ```
 
 
@@ -72,16 +72,21 @@ kable(df_top10)
 # MAPAS DE EFICIENCIA TÉCNICA EN CHILE
 
 ```{r mapas-eficiencia, echo=FALSE, fig.align="center", out.width="100%"}
-# Lista de archivos de mapas
-mapas <- list.files(pattern = "Gráfica Chile - Eficiencia técnica_Año_.*\\.jpg$")
+# Carpeta donde están los mapas
+carpeta_mapas <- "Resultados/Mapas/"
 
-# Ordenar por año (opcional)
+# Listar solo los archivos que coinciden con el patrón
+mapas <- list.files(path = carpeta_mapas,
+                    pattern = "Gráfica Chile - Eficiencia técnica_Año_.*\\.jpg$",
+                    full.names = TRUE)
+
+# Ordenar por nombre (para que se mantenga el orden por año)
 mapas <- sort(mapas)
 
-# Mostrar todas las imágenes
+# Incluir gráficos en el informe
 knitr::include_graphics(mapas)
+
 ```
-  
   
 # OUTLIERS DE LA EFICIENCIA TÉCNICA
 
@@ -125,9 +130,9 @@ for (g in graficos_determinantes) {
 # COMPARACIÓN SFA VS DEA
 
 ```{r correlacion-vs, echo=FALSE, out.width="100%"}
-knitr::include_graphics("Correlacion_SFA_DEA.png")
+knitr::include_graphics("Resultados/Comparacion/Correlacion_SFA_DEA_OOVRS.png")
 ```
 
 ```{r distancia-vs, echo=FALSE, out.width="100%"}
-knitr::include_graphics("Distancia_Euclidiana_SFA_DEA.png")
+knitr::include_graphics("Resultados/Comparacion/Distancia_Euclidiana_SFA_DEA_OOVRS.png")
 ```
